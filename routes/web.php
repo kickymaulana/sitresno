@@ -8,7 +8,5 @@ use Inertia\Inertia;
 /* }); */
 
 Route::get('/', function () {
-    return Inertia::render('Home', [
-        'message' => 'Halo dari Controller Laravel!'
-    ]);
+    return Inertia::render('Sidebar/Index');
 });
