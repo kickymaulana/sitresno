@@ -2,16 +2,15 @@
 import type { SidebarProps } from '@/components/ui/sidebar'
 
 import {
-  BookOpen,
-  Bot,
-  Command,
-  Frame,
+  ClipboardCheck,
+  FileCheck2,
+  Gauge,
   LifeBuoy,
-  Map,
-  PieChart,
-  Send,
+  MessageSquareText,
   Settings2,
-  SquareTerminal,
+  ShieldCheck,
+  Users,
+  Workflow,
 } from "@lucide/vue"
 
 import NavMain from '@/components/NavMain.vue'
@@ -34,125 +33,55 @@ const props = withDefaults(defineProps<SidebarProps>(), {
 
 const data = {
   user: {
-    name: "shadcn",
-    email: "m@example.com",
-    avatar: "/avatars/shadcn.jpg",
+    name: "Admin SITRESNO",
+    email: "admin@sitresno.local",
+    avatar: "",
   },
   navMain: [
     {
-      title: "Playground",
-      url: "#",
-      icon: SquareTerminal,
+      title: "Overview",
+      url: "/",
+      icon: Gauge,
       isActive: true,
+    },
+    {
+      title: "Quality Standards",
+      url: "#",
+      icon: ShieldCheck,
       items: [
-        {
-          title: "History",
-          url: "#",
-        },
-        {
-          title: "Starred",
-          url: "#",
-        },
-        {
-          title: "Settings",
-          url: "#",
-        },
+        { title: "Standard Register", url: "#" },
+        { title: "Audit Checklist", url: "#" },
+        { title: "Findings & Actions", url: "#" },
       ],
     },
     {
-      title: "Models",
+      title: "Operational Records",
       url: "#",
-      icon: Bot,
+      icon: ClipboardCheck,
       items: [
-        {
-          title: "Genesis",
-          url: "#",
-        },
-        {
-          title: "Explorer",
-          url: "#",
-        },
-        {
-          title: "Quantum",
-          url: "#",
-        },
+        { title: "Daily Records", url: "#" },
+        { title: "Inspections", url: "#" },
+        { title: "Reports", url: "#" },
       ],
     },
     {
-      title: "Documentation",
+      title: "Team Management",
       url: "#",
-      icon: BookOpen,
+      icon: Users,
       items: [
-        {
-          title: "Introduction",
-          url: "#",
-        },
-        {
-          title: "Get Started",
-          url: "#",
-        },
-        {
-          title: "Tutorials",
-          url: "#",
-        },
-        {
-          title: "Changelog",
-          url: "#",
-        },
-      ],
-    },
-    {
-      title: "Settings",
-      url: "#",
-      icon: Settings2,
-      items: [
-        {
-          title: "General",
-          url: "#",
-        },
-        {
-          title: "Team",
-          url: "#",
-        },
-        {
-          title: "Billing",
-          url: "#",
-        },
-        {
-          title: "Limits",
-          url: "#",
-        },
+        { title: "Staff Directory", url: "#" },
+        { title: "Roles & Access", url: "#" },
       ],
     },
   ],
   navSecondary: [
-    {
-      title: "Support",
-      url: "#",
-      icon: LifeBuoy,
-    },
-    {
-      title: "Feedback",
-      url: "#",
-      icon: Send,
-    },
+    { title: "Help Center", url: "#", icon: LifeBuoy },
+    { title: "Send Feedback", url: "#", icon: MessageSquareText },
   ],
   projects: [
-    {
-      name: "Design Engineering",
-      url: "#",
-      icon: Frame,
-    },
-    {
-      name: "Sales & Marketing",
-      url: "#",
-      icon: PieChart,
-    },
-    {
-      name: "Travel",
-      url: "#",
-      icon: Map,
-    },
+    { name: "ISO 9001:2015", url: "#", icon: FileCheck2 },
+    { name: "Safety & Compliance", url: "#", icon: Workflow },
+    { name: "System Settings", url: "#", icon: Settings2 },
   ],
 }
 </script>
@@ -163,13 +92,13 @@ const data = {
       <SidebarMenu>
         <SidebarMenuItem>
           <SidebarMenuButton size="lg" as-child>
-            <a href="#">
-              <div class="flex aspect-square size-8 items-center justify-center rounded-lg bg-sidebar-primary text-sidebar-primary-foreground">
-                <Command class="size-4" />
+            <a href="/">
+              <div class="flex aspect-square size-9 items-center justify-center rounded-xl bg-sidebar-primary text-lg font-bold text-sidebar-primary-foreground shadow-sm">
+                S
               </div>
-              <div class="grid flex-1 text-left text-sm leading-tight">
-                <span class="truncate font-medium">Acme Inc</span>
-                <span class="truncate text-xs">Enterprise</span>
+              <div class="grid flex-1 text-left leading-tight">
+                <span class="truncate font-heading text-base font-bold tracking-tight">SITRESNO</span>
+                <span class="truncate text-[10px] font-medium tracking-wide text-sidebar-foreground/65">QUALITY & OPERATIONAL</span>
               </div>
             </a>
           </SidebarMenuButton>
