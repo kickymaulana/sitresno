@@ -1,5 +1,6 @@
 import '../css/app.css'
 import { createInertiaApp } from '@inertiajs/vue3'
+import { ZiggyVue } from 'ziggy-js'
 
 if (typeof window !== 'undefined') {
   const savedTheme = window.localStorage.getItem('sitresno-theme')
@@ -9,4 +10,8 @@ if (typeof window !== 'undefined') {
   document.documentElement.classList.toggle('dark', shouldUseDarkTheme)
 }
 
-createInertiaApp()
+createInertiaApp({
+  withApp(app) {
+    app.use(ZiggyVue)
+  },
+})
