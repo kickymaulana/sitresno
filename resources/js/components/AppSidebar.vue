@@ -1,21 +1,15 @@
 <script setup lang="ts">
+import type { LucideIcon } from "@lucide/vue"
 import type { SidebarProps } from '@/components/ui/sidebar'
 import { computed } from "vue"
-import { usePage } from "@inertiajs/vue3"
+import { Link, usePage } from "@inertiajs/vue3"
 import {
   ClipboardCheck,
-  FileCheck2,
+  Factory,
   Gauge,
-  LifeBuoy,
-  MessageSquareText,
-  Settings2,
-  ShieldCheck,
   Users,
-  Workflow,
 } from "@lucide/vue"
 import NavMain from '@/components/NavMain.vue'
-import NavProjects from '@/components/NavProjects.vue'
-import NavSecondary from '@/components/NavSecondary.vue'
 import NavUser from '@/components/NavUser.vue'
 import {
   Sidebar,
@@ -51,55 +45,57 @@ const user = computed(() => ({
   role: page.props.auth.user.roles[0],
 }))
 
-const navMain = computed(() => {
-  const items = [
-    { title: "Overview", url: "/", icon: Gauge, isActive: true },
-    {
-      title: "Quality Standards",
-      url: "#",
-      icon: ShieldCheck,
-      items: [
-        { title: "Standard Register", url: "#" },
-        { title: "Audit Checklist", url: "#" },
-        { title: "Findings & Actions", url: "#" },
-      ],
-    },
-    {
-      title: "Operational Records",
-      url: "#",
-      icon: ClipboardCheck,
-      items: [
-        { title: "Daily Records", url: "#" },
-        { title: "Inspections", url: "#" },
-        { title: "Reports", url: "#" },
-      ],
-    },
+interface NavigationItem {
+  title: string
+  url: string
+  icon: LucideIcon
+  items?: { title: string; url: string }[]
+}
+
+const navMain = computed<NavigationItem[]>(() => {
+  const items: NavigationItem[] = [
+    { title: "Beranda", url: route("dashboard"), icon: Gauge },
   ]
 
-  if (page.props.auth.user.permissions.includes('users.view')) {
+  if (page.props.auth.user.permissions.includes("records.view")) {
     items.push({
-      title: "Team Management",
-      url: "/users/access",
+      title: "Form Pengukuran",
+      url: route("form-pengukurans.index"),
+      icon: ClipboardCheck,
+      items: [
+        { title: "Daftar Pengukuran", url: route("form-pengukurans.index") },
+        { title: "Tambah Pengukuran", url: route("form-pengukurans.create") },
+      ],
+    })
+  }
+
+  if (page.props.auth.user.permissions.includes("masters.view")) {
+    items.push({
+      title: "Data Master",
+      url: route("areas.index"),
+      icon: Factory,
+      items: [
+        { title: "Area", url: route("areas.index") },
+        { title: "Master Mould", url: route("master-moulds.index") },
+        { title: "Ukuran Model", url: route("model-sizes.index") },
+        { title: "Pelanggan", url: route("customers.index") },
+      ],
+    })
+  }
+
+  if (page.props.auth.user.permissions.includes("users.view")) {
+    items.push({
+      title: "Pengguna",
+      url: route("users.access.index"),
       icon: Users,
       items: [
-        { title: "Roles & Access", url: "/users/access" },
+        { title: "Role & Akses", url: route("users.access.index") },
       ],
     })
   }
 
   return items
 })
-
-const navSecondary = [
-  { title: "Help Center", url: "#", icon: LifeBuoy },
-  { title: "Send Feedback", url: "#", icon: MessageSquareText },
-]
-
-const projects = [
-  { name: "ISO 9001:2015", url: "#", icon: FileCheck2 },
-  { name: "Safety & Compliance", url: "#", icon: Workflow },
-  { name: "System Settings", url: "#", icon: Settings2 },
-]
 </script>
 
 <template>
@@ -108,21 +104,19 @@ const projects = [
       <SidebarMenu>
         <SidebarMenuItem>
           <SidebarMenuButton size="lg" as-child>
-            <a :href="route('dashboard')">
+            <Link :href="route('dashboard')">
               <div class="flex aspect-square size-9 items-center justify-center rounded-xl bg-sidebar-primary text-lg font-bold text-sidebar-primary-foreground shadow-sm">S</div>
               <div class="grid flex-1 text-left leading-tight">
                 <span class="truncate font-heading text-base font-bold tracking-tight">SITRESNO</span>
-                <span class="truncate text-[10px] font-medium tracking-wide text-sidebar-foreground/65">QUALITY & OPERATIONAL</span>
+                <span class="truncate text-[10px] font-medium tracking-wide text-sidebar-foreground/65">PENGUKURAN PRODUK</span>
               </div>
-            </a>
+            </Link>
           </SidebarMenuButton>
         </SidebarMenuItem>
       </SidebarMenu>
     </SidebarHeader>
     <SidebarContent>
       <NavMain :items="navMain" />
-      <NavProjects :projects="projects" />
-      <NavSecondary :items="navSecondary" class="mt-auto" />
     </SidebarContent>
     <SidebarFooter>
       <NavUser :user="user" />
