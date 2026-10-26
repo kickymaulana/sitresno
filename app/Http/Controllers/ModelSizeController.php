@@ -13,7 +13,7 @@ class ModelSizeController extends Controller
 {
     public function index(): Response
     {
-        return Inertia::render('ModelSizes/Index', ['modelSizes' => ModelSize::query()->orderBy('model')->orderBy('size')->get()->map(fn (ModelSize $modelSize): array => $this->transform($modelSize))]);
+        return Inertia::render('ModelSizes/Index', ['modelSizes' => ModelSize::query()->orderByRaw('COALESCE(name, full_name, model)')->get()->map(fn (ModelSize $modelSize): array => $this->transform($modelSize))]);
     }
 
     public function create(): Response
@@ -49,11 +49,11 @@ class ModelSizeController extends Controller
 
     private function attributes(array $data): array
     {
-        return ['model' => $data['model'], 'size' => $data['size'], 'full_name' => $data['fullName'], 'description' => $data['description'] ?? null];
+        return ['name' => $data['name'], 'description' => $data['description'] ?? null];
     }
 
     private function transform(ModelSize $modelSize): array
     {
-        return ['id' => $modelSize->id, 'model' => $modelSize->model, 'size' => $modelSize->size, 'fullName' => $modelSize->full_name, 'description' => $modelSize->description];
+        return ['id' => $modelSize->id, 'name' => $modelSize->displayName(), 'description' => $modelSize->description];
     }
 }

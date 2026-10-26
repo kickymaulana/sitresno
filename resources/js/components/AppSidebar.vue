@@ -79,6 +79,8 @@ const navMain = computed<NavigationItem[]>(() => {
         { title: "Master Mould", url: route("master-moulds.index") },
         { title: "Ukuran Model", url: route("model-sizes.index") },
         { title: "Pelanggan", url: route("customers.index") },
+        { title: "Tahap Pengukuran", url: route("measurement-conditions.index") },
+        { title: "Konfigurasi Pengukuran", url: route("measurement-configurations.index") },
       ],
     })
   }

@@ -15,9 +15,7 @@ class StoreModelSizeRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'model' => ['required', 'string', 'max:255', Rule::unique('model_sizes')->where(fn ($query) => $query->where('size', $this->input('size')))],
-            'size' => ['required', 'string', 'max:255'],
-            'fullName' => ['required', 'string', 'max:255'],
+            'name' => ['required', 'string', 'max:255', Rule::unique('model_sizes', 'name')],
             'description' => ['nullable', 'string'],
         ];
     }
@@ -25,10 +23,8 @@ class StoreModelSizeRequest extends FormRequest
     public function messages(): array
     {
         return [
-            'model.required' => 'Model wajib diisi.',
-            'model.unique' => 'Kombinasi model dan ukuran sudah digunakan.',
-            'size.required' => 'Ukuran wajib diisi.',
-            'fullName.required' => 'Nama lengkap wajib diisi.',
+            'name.required' => 'Model/Size wajib diisi.',
+            'name.unique' => 'Model/Size sudah digunakan.',
         ];
     }
 }

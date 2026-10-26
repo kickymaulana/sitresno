@@ -5,6 +5,7 @@ namespace App\Http\Middleware;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Inertia\Middleware;
+use Tighten\Ziggy\Ziggy;
 
 class HandleInertiaRequests extends Middleware
 {
@@ -22,6 +23,10 @@ class HandleInertiaRequests extends Middleware
     {
         return [
             ...parent::share($request),
+            'ziggy' => fn (): array => [
+                ...(new Ziggy)->toArray(),
+                'location' => $request->url(),
+            ],
             'auth' => fn (): array => [
                 'user' => $request->user() instanceof User ? [
                     'id' => $request->user()->id,

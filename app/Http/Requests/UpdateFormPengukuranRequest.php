@@ -3,12 +3,11 @@
 namespace App\Http\Requests;
 
 use App\Models\FormPengukuran;
-use App\Models\FormPengukuranHasil;
-use Illuminate\Foundation\Http\FormRequest;
+use App\Models\MeasurementConfiguration;
 use Illuminate\Validation\Rule;
 use Illuminate\Validation\Validator;
 
-class UpdateFormPengukuranRequest extends FormRequest
+class UpdateFormPengukuranRequest extends StoreFormPengukuranRequest
 {
     public function authorize(): bool
     {
@@ -17,28 +16,16 @@ class UpdateFormPengukuranRequest extends FormRequest
 
     public function rules(): array
     {
-        $rules = [
-            'areaId' => ['required', 'integer', 'exists:areas,id'],
-            'masterMouldId' => ['required', 'integer', 'exists:master_moulds,id'],
-            'modelSizeId' => ['required', 'integer', 'exists:model_sizes,id'],
-            'customerId' => ['required', 'integer', 'exists:customers,id'],
-            'hariKe' => ['nullable', 'string', 'max:255'],
-            'mesin' => ['nullable', 'string', 'max:255'],
-            'tanggalOutputSample' => ['nullable', 'date'],
-            'tanggalPengukuran' => ['nullable', 'date'],
-            'tanggalNaikMould' => ['nullable', 'date'],
-            'dibuatOleh' => ['nullable', 'string', 'max:255'],
-            'diperiksaOleh' => ['nullable', 'string', 'max:255'],
-            'status' => ['required', Rule::in(['draft', 'menunggu_pemeriksaan', 'disetujui', 'ditolak'])],
-            'results' => ['required', 'array', 'size:3'],
-            'results.*.id' => ['nullable', 'integer', 'distinct', 'exists:form_pengukuran_hasils,id'],
-            'results.*.condition' => ['required', 'string', 'distinct', Rule::in(FormPengukuranHasil::CONDITIONS)],
-            'results.*.remarks' => ['nullable', 'string'],
-        ];
+        $rules = parent::rules();
+        $formPengukuran = $this->formPengukuran();
 
-        foreach (FormPengukuranHasil::MEASUREMENTS as $measurement) {
-            $rules["results.*.$measurement"] = ['nullable', 'numeric'];
-        }
+        $rules['tanggalPengukuran'] = [
+            'required',
+            'date',
+            Rule::unique('form_pengukurans', 'tanggal_pengukuran')
+                ->where('customer_id', $this->input('customerId'))
+                ->ignore($formPengukuran),
+        ];
 
         return $rules;
     }
@@ -46,34 +33,50 @@ class UpdateFormPengukuranRequest extends FormRequest
     public function after(): array
     {
         return [function (Validator $validator): void {
-            if (! $validator->errors()->hasAny(['results', 'results.*.condition'])) {
-                $conditions = collect($this->input('results', []))->pluck('condition')->sort()->values()->all();
-                $requiredConditions = collect(FormPengukuranHasil::CONDITIONS)->sort()->values()->all();
-
-                if ($conditions !== $requiredConditions) {
-                    $validator->errors()->add('results', 'Hasil harus memuat tepat tiga kondisi: sebelum cuci, sesudah cuci, dan setelah bakar.');
-                }
-            }
-
-            if ($validator->errors()->has('results.*.id')) {
+            if ($validator->errors()->hasAny(['customerId', 'items', 'items.*.modelSizeId', 'items.*.actuals', 'items.*.actuals.*.configurationFieldId'])) {
                 return;
             }
 
-            $formPengukuran = $this->route('form_pengukuran');
-            $formId = $formPengukuran instanceof FormPengukuran ? $formPengukuran->id : (int) $formPengukuran;
-            $ids = collect($this->input('results', []))->pluck('id')->filter()->values();
+            $formPengukuran = $this->formPengukuran();
+            $formPengukuran?->load('items.actuals');
 
-            if ($ids->isNotEmpty() && FormPengukuranHasil::query()->whereIn('id', $ids)->where('form_pengukuran_id', '!=', $formId)->exists()) {
-                $validator->errors()->add('results', 'Hasil pengukuran tidak terdaftar pada form ini.');
+            foreach ($this->input('items') as $itemIndex => $item) {
+                $existingItem = $formPengukuran?->items->firstWhere('model_size_id', (int) $item['modelSizeId']);
+                $keepsOriginalCombination = $formPengukuran?->customer_id === $this->integer('customerId')
+                    && $existingItem?->measurement_configuration_id !== null;
+
+                if ($keepsOriginalCombination) {
+                    $allowed = $existingItem->actuals->pluck('measurement_configuration_field_id')->filter()->sort()->values();
+                } else {
+                    $configuration = MeasurementConfiguration::query()
+                        ->where('customer_id', $this->integer('customerId'))
+                        ->where('model_size_id', $item['modelSizeId'])
+                        ->where('is_active', true)
+                        ->with(['fields' => fn ($query) => $query->where('is_active', true)])
+                        ->first();
+
+                    if ($configuration === null) {
+                        $validator->errors()->add("items.$itemIndex.modelSizeId", 'Konfigurasi pengukuran untuk Customer dan Model/Size ini belum tersedia.');
+
+                        continue;
+                    }
+
+                    $allowed = $configuration->fields->pluck('id')->sort()->values();
+                }
+
+                $submitted = collect($item['actuals'])->pluck('configurationFieldId')->sort()->values();
+
+                if ($submitted->duplicates()->isNotEmpty() || $submitted->all() !== $allowed->all()) {
+                    $validator->errors()->add("items.$itemIndex.actuals", 'Field actual tidak sesuai dengan snapshot konfigurasi form.');
+                }
             }
         }];
     }
 
-    public function messages(): array
+    private function formPengukuran(): ?FormPengukuran
     {
-        return (new StoreFormPengukuranRequest)->messages() + [
-            'results.*.id.exists' => 'Hasil pengukuran tidak ditemukan.',
-            'results.*.id.distinct' => 'ID hasil pengukuran tidak boleh duplikat.',
-        ];
+        $formPengukuran = $this->route('form_pengukuran');
+
+        return $formPengukuran instanceof FormPengukuran ? $formPengukuran : null;
     }
 }

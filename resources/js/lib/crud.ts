@@ -9,6 +9,7 @@ export interface MasterRecord {
   name?: string | null
   code?: string | null
   fullName?: string | null
+  label?: string | null
   description?: string | null
   model?: string | null
   size?: string | null
@@ -22,28 +23,53 @@ export interface MasterField {
   type?: "text" | "number"
 }
 
-export type MeasurementCondition = "sebelum_cuci" | "sesudah_cuci" | "setelah_bakar"
-export type MeasurementKey = "h" | "l" | "pc_10mm" | "pc_middle" | "upper_palm_width" | "lower_palm_width" | "wc" | "sl_titik" | "fl_1" | "fl_2" | "fl_3" | "fl_4" | "fl_5" | "fc_1" | "fc_2" | "fc_3" | "fc_4" | "fc_5" | "fc_internal_1" | "fc_internal_2" | "fc_internal_3" | "fc_internal_4" | "fc_internal_5" | "lt" | "d1" | "d2" | "pt" | "span" | "kl" | "tt" | "prbt_t" | "m" | "beading_267" | "beading_222" | "tb" | "w"
+export type MeasurementCondition = string
 
-export type MeasurementValues = Record<MeasurementKey, string | number | null>
-export type MeasurementInputValues = Record<MeasurementKey, string | number>
-
-export interface MeasurementResult extends MeasurementValues {
-  id?: number
+export interface MeasurementConfigurationField {
+  id: number
+  parameterName: string
   condition: MeasurementCondition
-  remarks: string | null
+  expectedValue: string | number | null
+  description: string | null
+  sortOrder: number
+  isActive?: boolean
+  label: string
+  isStarred: boolean
 }
 
-export interface MeasurementResultPayload extends MeasurementInputValues {
+export interface MeasurementConfiguration {
+  id: number
+  customerId: number
+  modelSizeId: number
+  isActive?: boolean
+  fields: MeasurementConfigurationField[]
+}
+
+export interface MeasurementValue {
+  configurationFieldId?: number | null
+  parameterName?: string
   condition: MeasurementCondition
-  remarks: string
+  specification?: string | number | null
+  actual: string | number | null
+  label?: string
+  description?: string | null
+  sortOrder?: number
+  isStarred?: boolean
+}
+
+export interface FormPengukuranItem {
+  id?: number
+  modelSizeId: number | null
+  modelSize?: SelectOption
+  measurementConfigurationId?: number | null
+  remarks: string | null
+  actuals: MeasurementValue[]
 }
 
 export interface FormPengukuran {
   id: number
   areaId: number
   masterMouldId: number
-  modelSizeId: number
   customerId: number
   hariKe: string | null
   mesin: string | null
@@ -55,15 +81,14 @@ export interface FormPengukuran {
   status: "draft" | "menunggu_pemeriksaan" | "disetujui" | "ditolak"
   area: SelectOption | null
   masterMould: SelectOption | null
-  modelSize: SelectOption | null
   customer: SelectOption | null
-  results?: MeasurementResult[]
+  modelSizes: SelectOption[]
+  items?: FormPengukuranItem[]
 }
 
 export interface FormPengukuranPayload {
   areaId: number | null
   masterMouldId: number | null
-  modelSizeId: number | null
   customerId: number | null
   hariKe: string
   mesin: string
@@ -73,5 +98,5 @@ export interface FormPengukuranPayload {
   dibuatOleh: string
   diperiksaOleh: string
   status: FormPengukuran["status"]
-  results: MeasurementResultPayload[]
+  items: FormPengukuranItem[]
 }

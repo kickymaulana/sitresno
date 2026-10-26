@@ -11,7 +11,7 @@ if (typeof window !== 'undefined') {
 }
 
 createInertiaApp({
-  withApp(app) {
-    app.use(ZiggyVue)
+  withApp(app, { page }) {
+    app.use(ZiggyVue, page.props.ziggy)
   },
 })

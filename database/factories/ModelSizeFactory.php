@@ -14,6 +14,7 @@ class ModelSizeFactory extends Factory
         $size = fake()->randomElement(['XS', 'S', 'M', 'L', 'XL']);
 
         return [
+            'name' => "$model $size",
             'model' => $model,
             'size' => $size,
             'full_name' => "$model $size",

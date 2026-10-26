@@ -40,6 +40,11 @@ class FormPengukuran extends Model
         return $this->hasMany(FormPengukuranHasil::class);
     }
 
+    public function items(): HasMany
+    {
+        return $this->hasMany(FormPengukuranItem::class)->orderBy('sort_order');
+    }
+
     protected function casts(): array
     {
         return [

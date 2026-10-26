@@ -1,0 +1,131 @@
+{
+  "ANSELL": [
+    "MD 133 360 S",
+    "MD 133 360 M",
+    "MD 133 360 L",
+    "MD 133 360 XL"
+  ],
+  "ECOMEDI": [
+    "MD 43 400 YXS",
+    "MD 43 400 S",
+    "MD 43 400 M",
+    "MD 43 400 L",
+    "MD 43 400 XL",
+    "MD 43 400 YXS (TIPIS)",
+    "MD 43 400 S (TIPIS)",
+    "MD 43 400 M (TIPIS)",
+    "MD 43 400 L (TIPIS)",
+    "MD 43 400 XL (TIPIS)"
+  ],
+  "GENERAL": [
+    "MD 127 400 S (KODE D)",
+    "MD 127 400 M (KODE D)",
+    "MD 127 400 L (KODE D)",
+    "MD 127 400 XL (KODE D)",
+    "MD 127 400 S",
+    "MD 127 400 M",
+    "MD 127 400 XL"
+  ],
+  "HARTALEGA": [
+    "MD 061 SKU2 S",
+    "MD 061 SKU2 L",
+    "MD HA 03 XS-02",
+    "MD HA 03 S2",
+    "MD HA 03 M",
+    "MD HA 03 L",
+    "MD HA 03 XL",
+    "MD HA 03 T5 M",
+    "MD HA 02 AT 5.5 RL",
+    "MD HA 02 AT 6.0 RL",
+    "MD HA 02 AT 6.5 RL",
+    "MD HA 02 AT 7.0 RL",
+    "MD HA 02 AT 7.5 RL",
+    "MD HA 02 AT 8.0 RL",
+    "MD HA 02 AT 8.5 RL",
+    "MD HA 02 AT 9.0 RL",
+    "MD FTMS XL",
+    "MD FTMS XXL"
+  ],
+  "INTCO": [
+    "MD 124 380 XS",
+    "MD 124 380 S",
+    "MD 124 380 M",
+    "MD 124 380 L",
+    "MD 124 380 S (TIPIS)",
+    "MD 124 380 M (TIPIS)",
+    "MD 124 380 L (TIPIS)",
+    "MD 124 380 XL (TIPIS)"
+  ],
+  "KOSSAN": [
+    "MD 43 400 S",
+    "MD 43 400 M",
+    "MD 43 400 XL",
+    "MD 43 380 XS",
+    "MD 43 380 S",
+    "MD 43 380 M",
+    "MD 43 380 XL"
+  ],
+  "MAH SING": [
+    "MD 43 380 XL"
+  ],
+  "MEDISAFE": [
+    "MD 20 400 XS-01",
+    "MD 20 400 S-01",
+    "MD 20 400 M",
+    "MD 20 400 L",
+    "MD 20 400 XL"
+  ],
+  "MERCATOR": [
+    "MD 150 380 S",
+    "MD 150 380 M"
+  ],
+  "PM GLOVE": [
+    "MD 43 430 XS",
+    "MD 68 380 XS",
+    "MD 124 380 S",
+    "MD 124 380 M",
+    "MD 104 380 XL"
+  ],
+  "PROF LATEX": [
+    "MD 43 360 M",
+    "MD 43 360 L",
+    "MD 43 360 XL"
+  ],
+  "SAFESKIN": [
+    "MD700 6.5 RL",
+    "MD700 7.5 RL",
+    "MD700 8.0 RL",
+    "MD700 8.5 RL",
+    "MD700 9.0 RL",
+    "MD600A 6.5 RL",
+    "MD600A 7.0 RL",
+    "MD600A 7.5 RL",
+    "MD061 400 S",
+    "MD061 400 M"
+  ],
+  "SRI TRANG": [
+    "MD 36 368 S-01",
+    "MD 87 368 M-01",
+    "MD 87 368 L-01"
+  ],
+  "UNIVERSAL": [
+    "MD 45 380 M-01",
+    "MD 45 380 L-01",
+    "MD 45 380 XL-02"
+  ],
+  "VIET GLOVE": [
+    "MD 64 400 M",
+    "MD K41 P226 L-01"
+  ],
+  "WA RUBBER": [
+    "MD K41 380 M",
+    "MD K41 380 L",
+    "MD K41 380 XL-01"
+  ],
+  "YTY": [
+    "MD Y61A 380 M",
+    "MD 061 380 XL",
+    "MD 108 380 L",
+    "MD 108 380 XXL"
+  ]
+}

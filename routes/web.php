@@ -5,7 +5,10 @@ use App\Http\Controllers\Auth\AuthenticatedSessionController;
 use App\Http\Controllers\Auth\SsoController;
 use App\Http\Controllers\CustomerController;
 use App\Http\Controllers\FormPengukuranController;
+use App\Http\Controllers\FormPengukuranPrintController;
 use App\Http\Controllers\MasterMouldController;
+use App\Http\Controllers\MeasurementConditionController;
+use App\Http\Controllers\MeasurementConfigurationController;
 use App\Http\Controllers\ModelSizeController;
 use App\Http\Controllers\UserAccessController;
 use Illuminate\Support\Facades\Route;
@@ -31,6 +34,9 @@ Route::middleware(['auth', 'approved'])->group(function (): void {
         'master-moulds' => MasterMouldController::class,
         'model-sizes' => ModelSizeController::class,
         'customers' => CustomerController::class,
+
+        'measurement-conditions' => MeasurementConditionController::class,
+        'measurement-configurations' => MeasurementConfigurationController::class,
     ] as $resource => $controller) {
         Route::resource($resource, $controller)->only(['index'])->middleware('permission:masters.view');
         Route::resource($resource, $controller)->only(['create'])->middleware('permission:masters.create');
@@ -39,6 +45,8 @@ Route::middleware(['auth', 'approved'])->group(function (): void {
         Route::resource($resource, $controller)->only(['update']);
         Route::resource($resource, $controller)->only(['destroy'])->middleware('permission:masters.delete');
     }
+
+    Route::get('/form-pengukurans/{form_pengukuran}/print', FormPengukuranPrintController::class)->middleware('permission:records.view')->name('form-pengukurans.print');
 
     Route::resource('form-pengukurans', FormPengukuranController::class)->only(['create'])->middleware('permission:records.create');
     Route::resource('form-pengukurans', FormPengukuranController::class)->only(['index', 'show'])->middleware('permission:records.view');

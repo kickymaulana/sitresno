@@ -4,7 +4,7 @@ import type { MasterField, MasterRecord } from "@/lib/crud"
 
 defineProps<{ modelSize: MasterRecord }>()
 
-const fields: MasterField[] = [{ key: "model", label: "Model", placeholder: "Masukkan model" }, { key: "size", label: "Ukuran", placeholder: "Masukkan ukuran" }, { key: "fullName", label: "Nama lengkap", placeholder: "Masukkan nama lengkap" }, { key: "description", label: "Keterangan", placeholder: "Keterangan ukuran" }]
+const fields: MasterField[] = [{ key: "name", label: "Model/Size", placeholder: "Masukkan model/size" }, { key: "description", label: "Keterangan", placeholder: "Keterangan model/size" }]
 </script>
 
 <template><MasterForm title="Ukuran Model" description="Perbarui ukuran model." :fields="fields" route-name="model-sizes" :record="modelSize" /></template>
