@@ -11,10 +11,14 @@
         .actions { margin-bottom: 16px; }
         .meta { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px 16px; margin-bottom: 18px; }
         .item { break-inside: avoid; margin-bottom: 20px; }
-        table { border-collapse: collapse; width: 100%; }
-        th, td { border: 1px solid #444; padding: 4px 6px; text-align: left; vertical-align: top; }
+        .condition-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
+        .condition-column { min-width: 0; }
+        .condition-title { margin: 0; padding: 6px; border: 1px solid #444; border-bottom: 0; background: #ddd; font-size: 12px; text-align: center; }
+        table { border-collapse: collapse; width: 100%; table-layout: fixed; }
+        th, td { border: 1px solid #444; padding: 4px; text-align: left; vertical-align: top; overflow-wrap: anywhere; }
         th { background: #eee; }
         .number { text-align: right; }
+        .empty { text-align: center; }
         @media print { .actions { display: none; } }
     </style>
 </head>
@@ -38,28 +42,44 @@
             @if ($item->remarks)
                 <p><strong>Catatan:</strong> {{ $item->remarks }}</p>
             @endif
-            <table>
-                <thead>
-                    <tr>
-                        <th>Kondisi</th>
-                        <th>Parameter</th>
-                        <th>Deskripsi</th>
-                        <th>Spesifikasi</th>
-                        <th>Aktual</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    @foreach ($item->actuals as $actual)
-                        <tr>
-                            <td>{{ str($actual->condition)->replace('_', ' ')->title() }}</td>
-                            <td>{{ $actual->parameter_label }}</td>
-                            <td>{{ $actual->parameter_description }}</td>
-                            <td class="number">{{ $actual->specification }}</td>
-                            <td class="number">{{ $actual->actual }}</td>
-                        </tr>
-                    @endforeach
-                </tbody>
-            </table>
+            <div class="condition-grid">
+                @foreach ([
+                    'sebelum_cuci' => 'Sebelum Cuci',
+                    'sesudah_cuci' => 'Sesudah Cuci',
+                    'setelah_bakar' => 'Setelah Bakar',
+                ] as $conditionCode => $conditionLabel)
+                    @php($conditionActuals = $item->actuals->where('condition', $conditionCode))
+                    <div class="condition-column">
+                        <h3 class="condition-title">{{ $conditionLabel }}</h3>
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Parameter</th>
+                                    @if ($conditionCode === 'setelah_bakar')
+                                        <th>Spec</th>
+                                    @endif
+                                    <th>Actual</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @forelse ($conditionActuals as $actual)
+                                    <tr>
+                                        <td>{{ $actual->parameter_label }}</td>
+                                        @if ($conditionCode === 'setelah_bakar')
+                                            <td class="number">{{ $actual->specification }}</td>
+                                        @endif
+                                        <td class="number">{{ $actual->actual }}</td>
+                                    </tr>
+                                @empty
+                                    <tr>
+                                        <td class="empty" colspan="{{ $conditionCode === 'setelah_bakar' ? 3 : 2 }}">Tidak ada data</td>
+                                    </tr>
+                                @endforelse
+                            </tbody>
+                        </table>
+                    </div>
+                @endforeach
+            </div>
         </section>
     @endforeach
 </body>
