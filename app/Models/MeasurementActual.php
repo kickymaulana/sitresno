@@ -27,7 +27,6 @@ class MeasurementActual extends Model
     protected function casts(): array
     {
         return [
-            'specification' => 'decimal:3',
             'actual' => 'decimal:3',
             'parameter_is_starred' => 'boolean',
         ];

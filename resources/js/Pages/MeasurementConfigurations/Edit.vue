@@ -11,7 +11,7 @@ interface ConfigurationRecord {
     id?: number
     parameterName: string
     condition: string
-    expectedValue: string | number | null
+    expectedValue: string | null
     description: string
     sortOrder: number
     isActive: boolean

@@ -227,7 +227,7 @@ function submit(): void {
                 </Field>
                 <Field :data-invalid="Boolean(error(`fields.${index}.expectedValue`))">
                   <FieldLabel :for="`expected-${index}`">Nilai harapan</FieldLabel>
-                  <Input :id="`expected-${index}`" v-model="field.expectedValue as string" type="number" step="any" :aria-invalid="Boolean(error(`fields.${index}.expectedValue`))" />
+                  <Input :id="`expected-${index}`" v-model="field.expectedValue as string" type="text" :aria-invalid="Boolean(error(`fields.${index}.expectedValue`))" />
                   <FieldError :errors="[error(`fields.${index}.expectedValue`)]" />
                 </Field>
                 <Field>

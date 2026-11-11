@@ -16,7 +16,9 @@ function formatMeasurement(value: string | number | null | undefined): string {
     return "-"
   }
 
-  return Number(value).toFixed(2)
+  const numericValue = Number(value)
+
+  return Number.isFinite(numericValue) && String(value).trim() !== "" ? numericValue.toFixed(2) : String(value)
 }
 </script>
 

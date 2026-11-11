@@ -23,7 +23,13 @@
     </style>
 </head>
 <body>
-    @php($formatMeasurement = static fn ($value): string => $value === null || $value === '' ? '-' : number_format((float) $value, 2, '.', ''))
+    @php($formatMeasurement = static function ($value): string {
+        if ($value === null || $value === '') {
+            return '-';
+        }
+
+        return is_numeric($value) ? number_format((float) $value, 2, '.', '') : (string) $value;
+    })
     <div class="actions"><button type="button" onclick="window.print()">Print / Save as PDF</button></div>
     <h1>Form Pengukuran #{{ $formPengukuran->id }}</h1>
     <div class="meta">

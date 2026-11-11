@@ -28,7 +28,6 @@ class MeasurementConfigurationField extends Model
     protected function casts(): array
     {
         return [
-            'expected_value' => 'decimal:3',
             'is_active' => 'boolean',
         ];
     }
