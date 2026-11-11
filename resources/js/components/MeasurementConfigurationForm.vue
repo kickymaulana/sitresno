@@ -57,7 +57,12 @@ const form = useForm({
 
 const selectedCopyId = ref<number | null>(null)
 const selectedCopyFieldIds = ref<number[]>([])
+const selectedCopyInsertAfter = ref<number>(form.fields.length - 1)
 const selectedCopyConfiguration = computed(() => props.copyableConfigurations?.find(configuration => configuration.id === selectedCopyId.value))
+
+function normalizeSortOrders(): void {
+  form.fields.forEach((field, index) => { field.sortOrder = index + 1 })
+}
 
 function copyFields(): void {
   const source = props.copyableConfigurations?.find(configuration => configuration.id === selectedCopyId.value)
@@ -74,6 +79,8 @@ function copyFields(): void {
     sortOrder: field.sortOrder,
     isActive: field.isActive,
   }))
+  normalizeSortOrders()
+  selectedCopyInsertAfter.value = form.fields.length - 1
 }
 
 function copySelectedFields(): void {
@@ -95,22 +102,25 @@ function copySelectedFields(): void {
     }))
 
   if (form.fields.length === 1 && !form.fields[0].parameterName) {
-    form.fields = copiedFields
-  } else {
-    form.fields.push(...copiedFields)
+    form.fields = []
   }
 
-  form.fields.forEach((field, index) => { field.sortOrder = index + 1 })
+  const insertIndex = selectedCopyInsertAfter.value + 1
+  form.fields.splice(insertIndex, 0, ...copiedFields)
+  normalizeSortOrders()
   selectedCopyFieldIds.value = []
+  selectedCopyInsertAfter.value = form.fields.length - 1
 }
 
-function addField(): void {
-  form.fields.push(newField(form.fields.length + 1))
+function addField(afterIndex?: number): void {
+  const insertIndex = afterIndex === undefined ? form.fields.length : afterIndex + 1
+  form.fields.splice(insertIndex, 0, newField(insertIndex + 1))
+  normalizeSortOrders()
 }
 
 function removeField(index: number): void {
   form.fields.splice(index, 1)
-  form.fields.forEach((field, fieldIndex) => { field.sortOrder = fieldIndex + 1 })
+  normalizeSortOrders()
 }
 
 function error(path: string): string | undefined {
@@ -176,10 +186,17 @@ function submit(): void {
             <Button type="button" variant="outline" :disabled="!selectedCopyId" @click="copyFields"><Copy data-icon="inline-start" />Salin semua field</Button>
           </div>
           <div v-if="selectedCopyConfiguration" class="flex flex-col gap-3 rounded-lg border bg-muted/30 p-4">
-            <div class="flex items-center justify-between gap-3">
-              <p class="text-sm font-medium">Centang field yang ingin disalin</p>
+            <div class="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
+              <Field class="flex-1">
+                <FieldLabel>Posisi hasil salinan</FieldLabel>
+                <Select v-model="selectedCopyInsertAfter">
+                  <SelectTrigger><SelectValue /></SelectTrigger>
+                  <SelectContent><SelectGroup><SelectItem :value="-1">Di awal daftar</SelectItem><SelectItem v-for="(field, index) in form.fields" :key="field.id ?? `insert-after-${index}`" :value="index">Setelah Field {{ index + 1 }}{{ field.parameterName ? `: ${field.parameterName}` : '' }}</SelectItem></SelectGroup></SelectContent>
+                </Select>
+              </Field>
               <Button type="button" variant="outline" size="sm" :disabled="selectedCopyFieldIds.length === 0" @click="copySelectedFields"><Copy data-icon="inline-start" />Salin yang dipilih</Button>
             </div>
+            <p class="text-sm font-medium">Centang field yang ingin disalin</p>
             <label v-for="field in selectedCopyConfiguration.fields" :key="field.id" class="flex items-start gap-3 rounded-md border bg-background p-3 text-sm">
               <input v-model="selectedCopyFieldIds" type="checkbox" :value="field.id" class="mt-0.5 size-4 accent-primary" />
               <span><span class="font-medium">{{ field.parameterName }}</span><span class="ml-2 text-muted-foreground">{{ field.description || 'Tanpa keterangan' }} - {{ field.expectedValue ?? '-' }}</span></span>
@@ -191,7 +208,7 @@ function submit(): void {
           <Card v-for="(field, index) in form.fields" :key="field.id ?? `new-${index}`">
             <CardHeader class="flex-row items-center justify-between">
               <CardTitle class="text-base">Field {{ index + 1 }}</CardTitle>
-              <Button type="button" variant="outline" size="sm" :disabled="form.fields.length === 1" @click="removeField(index)"><Trash2 data-icon="inline-start" />Hapus</Button>
+              <div class="flex gap-2"><Button type="button" variant="outline" size="sm" @click="addField(index)"><Plus data-icon="inline-start" />Tambah setelah ini</Button><Button type="button" variant="outline" size="sm" :disabled="form.fields.length === 1" @click="removeField(index)"><Trash2 data-icon="inline-start" />Hapus</Button></div>
             </CardHeader>
             <CardContent>
               <FieldGroup class="grid grid-cols-1 gap-5 md:grid-cols-2 lg:grid-cols-3">
