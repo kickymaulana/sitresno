@@ -94,8 +94,9 @@ class FormPengukuranController extends Controller
     {
         $data = $request->validated();
         DB::transaction(function () use ($data, $formPengukuran): void {
+            $wasDraft = $formPengukuran->status === 'draft';
             $formPengukuran->update($this->formAttributes($data));
-            $this->synchronizeItems($formPengukuran, $data['items']);
+            $this->synchronizeItems($formPengukuran, $data['items'], $wasDraft);
         });
 
         return to_route('form-pengukurans.show', $formPengukuran);
@@ -126,7 +127,7 @@ class FormPengukuranController extends Controller
         ];
     }
 
-    private function synchronizeItems(FormPengukuran $formPengukuran, array $items): void
+    private function synchronizeItems(FormPengukuran $formPengukuran, array $items, bool $wasDraft = true): void
     {
         $modelSizes = ModelSize::query()->whereIn('id', collect($items)->pluck('modelSizeId'))->get()->keyBy('id');
         $configurations = MeasurementConfiguration::query()
@@ -141,7 +142,7 @@ class FormPengukuranController extends Controller
             $modelSize = $modelSizes->get((int) $itemData['modelSizeId']);
             $configuration = $configurations->get($modelSize->id);
             $existingItem = $formPengukuran->items()->with('actuals')->where('model_size_id', $modelSize->id)->first();
-            $preservesSnapshot = $formPengukuran->status !== 'draft'
+            $preservesSnapshot = ! $wasDraft
                 && $existingItem?->measurement_configuration_id === $configuration->id;
             $item = $formPengukuran->items()->updateOrCreate(
                 ['model_size_id' => $modelSize->id],

@@ -42,10 +42,11 @@ class UpdateFormPengukuranRequest extends StoreFormPengukuranRequest
 
             foreach ($this->input('items') as $itemIndex => $item) {
                 $existingItem = $formPengukuran?->items->firstWhere('model_size_id', (int) $item['modelSizeId']);
-                $keepsOriginalCombination = $formPengukuran?->customer_id === $this->integer('customerId')
+                $keepsOriginalSnapshot = $formPengukuran?->status !== 'draft'
+                    && $formPengukuran?->customer_id === $this->integer('customerId')
                     && $existingItem?->measurement_configuration_id !== null;
 
-                if ($keepsOriginalCombination) {
+                if ($keepsOriginalSnapshot) {
                     $allowed = $existingItem->actuals->pluck('measurement_configuration_field_id')->filter()->sort()->values();
                 } else {
                     $configuration = MeasurementConfiguration::query()
