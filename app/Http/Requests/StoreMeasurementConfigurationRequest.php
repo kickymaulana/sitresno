@@ -54,12 +54,35 @@ class StoreMeasurementConfigurationRequest extends FormRequest
                 return;
             }
 
-            $duplicates = collect($this->input('fields', []))
-                ->map(fn (array $field): string => mb_strtolower(trim((string) ($field['parameterName'] ?? ''))).'|'.$field['condition'])
-                ->duplicates();
+            $fields = collect($this->input('fields', []));
+            $fieldsByCombination = $fields->groupBy(fn (array $field): string => mb_strtolower(trim((string) ($field['parameterName'] ?? ''))).'|'.$field['condition']);
+            $duplicateGroups = $fieldsByCombination->filter(fn ($group): bool => $group->count() > 1);
 
-            if ($duplicates->isNotEmpty()) {
-                $validator->errors()->add('fields', 'Kombinasi parameter dan tahap tidak boleh duplikat dalam satu konfigurasi.');
+            if ($duplicateGroups->isEmpty()) {
+                return;
+            }
+
+            $validator->errors()->add('fields', 'Kombinasi parameter dan tahap tidak boleh duplikat dalam satu konfigurasi. Periksa field yang ditandai.');
+
+            foreach ($duplicateGroups as $duplicateGroup) {
+                $duplicateIndexes = $fields
+                    ->keys()
+                    ->filter(fn (int $index): bool => $duplicateGroup->contains($fields->get($index)))
+                    ->values();
+
+                foreach ($duplicateIndexes as $index) {
+                    $otherPositions = $duplicateIndexes
+                        ->reject(fn (int $duplicateIndex): bool => $duplicateIndex === $index)
+                        ->map(fn (int $duplicateIndex): int => $duplicateIndex + 1)
+                        ->join(', ');
+                    $field = $fields->get($index);
+                    $condition = str((string) $field['condition'])->replace('_', ' ')->title();
+                    $parameterName = trim((string) $field['parameterName']);
+                    $message = "Duplikat dengan Field {$otherPositions}: {$parameterName} pada tahap {$condition}.";
+
+                    $validator->errors()->add("fields.{$index}.parameterName", $message);
+                    $validator->errors()->add("fields.{$index}.condition", $message);
+                }
             }
         }];
     }

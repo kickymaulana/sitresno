@@ -59,6 +59,42 @@ const selectedCopyId = ref<number | null>(null)
 const selectedCopyFieldIds = ref<number[]>([])
 const selectedCopyInsertAfter = ref<number>(form.fields.length - 1)
 const selectedCopyConfiguration = computed(() => props.copyableConfigurations?.find(configuration => configuration.id === selectedCopyId.value))
+const duplicateFieldPartners = computed(() => {
+  const indexesByCombination = new Map<string, number[]>()
+
+  form.fields.forEach((field, index) => {
+    const parameterName = field.parameterName.trim().toLocaleLowerCase()
+
+    if (!parameterName || !field.condition) {
+      return
+    }
+
+    const combination = `${parameterName}|${field.condition}`
+    indexesByCombination.set(combination, [...(indexesByCombination.get(combination) ?? []), index])
+  })
+
+  const partners = new Map<number, number[]>()
+
+  indexesByCombination.forEach((indexes) => {
+    if (indexes.length < 2) {
+      return
+    }
+
+    indexes.forEach((index) => partners.set(index, indexes.filter(partnerIndex => partnerIndex !== index)))
+  })
+
+  return partners
+})
+
+function duplicateMessage(index: number): string | undefined {
+  const partnerIndexes = duplicateFieldPartners.value.get(index)
+
+  if (!partnerIndexes) {
+    return undefined
+  }
+
+  return `Duplikat dengan ${partnerIndexes.map(partnerIndex => `Field ${partnerIndex + 1}`).join(", ")}.`
+}
 
 function normalizeSortOrders(): void {
   form.fields.forEach((field, index) => { field.sortOrder = index + 1 })
@@ -205,25 +241,25 @@ function submit(): void {
         </CardHeader>
         <CardContent class="flex flex-col gap-5">
           <FieldError :errors="[form.errors.fields]" />
-          <Card v-for="(field, index) in form.fields" :key="field.id ?? `new-${index}`">
+          <Card v-for="(field, index) in form.fields" :key="field.id ?? `new-${index}`" :class="duplicateMessage(index) ? 'border-destructive' : undefined">
             <CardHeader class="flex-row items-center justify-between">
-              <CardTitle class="text-base">Field {{ index + 1 }}</CardTitle>
+              <div class="flex flex-col gap-1"><CardTitle class="text-base">Field {{ index + 1 }}</CardTitle><p v-if="duplicateMessage(index)" class="text-sm text-destructive">{{ duplicateMessage(index) }}</p></div>
               <div class="flex gap-2"><Button type="button" variant="outline" size="sm" @click="addField(index)"><Plus data-icon="inline-start" />Tambah setelah ini</Button><Button type="button" variant="outline" size="sm" :disabled="form.fields.length === 1" @click="removeField(index)"><Trash2 data-icon="inline-start" />Hapus</Button></div>
             </CardHeader>
             <CardContent>
               <FieldGroup class="grid grid-cols-1 gap-5 md:grid-cols-2 lg:grid-cols-3">
-                <Field :data-invalid="Boolean(error(`fields.${index}.parameterName`))">
+                <Field :data-invalid="Boolean(error(`fields.${index}.parameterName`) || duplicateMessage(index))">
                   <FieldLabel :for="`parameter-${index}`">Nama Parameter</FieldLabel>
-                  <Input :id="`parameter-${index}`" v-model="field.parameterName" placeholder="Contoh: BEADING" :aria-invalid="Boolean(error(`fields.${index}.parameterName`))" />
-                  <FieldError :errors="[error(`fields.${index}.parameterName`)]" />
+                  <Input :id="`parameter-${index}`" v-model="field.parameterName" placeholder="Contoh: BEADING" :aria-invalid="Boolean(error(`fields.${index}.parameterName`) || duplicateMessage(index))" />
+                  <FieldError :errors="[error(`fields.${index}.parameterName`) ?? duplicateMessage(index)]" />
                 </Field>
-                <Field :data-invalid="Boolean(error(`fields.${index}.condition`))">
+                <Field :data-invalid="Boolean(error(`fields.${index}.condition`) || duplicateMessage(index))">
                   <FieldLabel>Tahap</FieldLabel>
                   <Select v-model="field.condition">
-                    <SelectTrigger :aria-invalid="Boolean(error(`fields.${index}.condition`))"><SelectValue /></SelectTrigger>
+                    <SelectTrigger :aria-invalid="Boolean(error(`fields.${index}.condition`) || duplicateMessage(index))"><SelectValue /></SelectTrigger>
                     <SelectContent><SelectGroup><SelectItem v-for="condition in measurementConditions" :key="condition.id" :value="condition.code">{{ condition.name }}</SelectItem></SelectGroup></SelectContent>
                   </Select>
-                  <FieldError :errors="[error(`fields.${index}.condition`)]" />
+                  <FieldError :errors="[error(`fields.${index}.condition`) ?? duplicateMessage(index)]" />
                 </Field>
                 <Field :data-invalid="Boolean(error(`fields.${index}.expectedValue`))">
                   <FieldLabel :for="`expected-${index}`">Nilai harapan</FieldLabel>
