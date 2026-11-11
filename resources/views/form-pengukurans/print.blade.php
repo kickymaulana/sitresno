@@ -23,6 +23,7 @@
     </style>
 </head>
 <body>
+    @php($formatMeasurement = static fn ($value): string => $value === null || $value === '' ? '-' : number_format((float) $value, 2, '.', ''))
     <div class="actions"><button type="button" onclick="window.print()">Print / Save as PDF</button></div>
     <h1>Form Pengukuran #{{ $formPengukuran->id }}</h1>
     <div class="meta">
@@ -66,9 +67,9 @@
                                     <tr>
                                         <td>{{ $actual->parameter_label }}</td>
                                         @if ($conditionCode === 'setelah_bakar')
-                                            <td class="number">{{ $actual->specification }}</td>
+                                            <td class="number">{{ $formatMeasurement($actual->specification) }}</td>
                                         @endif
-                                        <td class="number">{{ $actual->actual }}</td>
+                                        <td class="number">{{ $formatMeasurement($actual->actual) }}</td>
                                     </tr>
                                 @empty
                                     <tr>
