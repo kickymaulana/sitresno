@@ -12,6 +12,7 @@ defineProps<{
     modelSize: string
     fields: {
       parameterName: string
+      pdfParameterName: string | null
       condition: string
       expectedValue: string | null
       description: string

@@ -29,6 +29,7 @@ class StoreMeasurementConfigurationRequest extends FormRequest
             'isActive' => ['required', 'boolean'],
             'fields' => ['required', 'array', 'min:1'],
             'fields.*.parameterName' => ['required', 'string', 'max:255'],
+            'fields.*.pdfParameterName' => ['nullable', 'string', 'max:255'],
             'fields.*.condition' => ['required', 'string', Rule::exists('measurement_conditions', 'code')->where('is_active', true)],
             'fields.*.expectedValue' => ['nullable', 'string', 'max:255'],
             'fields.*.description' => ['nullable', 'string'],

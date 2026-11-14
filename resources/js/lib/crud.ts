@@ -28,6 +28,8 @@ export type MeasurementCondition = string
 export interface MeasurementConfigurationField {
   id: number
   parameterName: string
+  label?: string
+  pdfParameterName?: string | null
   condition: MeasurementCondition
   expectedValue: string | number | null
   description: string | null

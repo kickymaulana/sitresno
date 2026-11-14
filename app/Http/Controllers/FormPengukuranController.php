@@ -272,7 +272,9 @@ class FormPengukuranController extends Controller
                 'expectedValue' => $field->expected_value,
                 'description' => $field->description,
                 'sortOrder' => $field->sort_order,
+                'parameterName' => $field->parameter_name,
                 'label' => $field->parameter_name,
+                'pdfParameterName' => $field->pdf_parameter_name,
                 'isStarred' => false,
             ])->values(),
         ];
@@ -329,6 +331,7 @@ class FormPengukuranController extends Controller
                     'specification' => $useLatestConfiguration ? $measurement->expected_value : $measurement->specification,
                     'actual' => $actual?->actual,
                     'label' => $useLatestConfiguration ? $measurement->parameter_name : $measurement->parameter_label,
+                    'pdfParameterName' => $useLatestConfiguration && $measurement instanceof MeasurementConfigurationField ? $measurement->pdf_parameter_name : null,
                     'description' => $useLatestConfiguration ? $measurement->description : $measurement->parameter_description,
                     'sortOrder' => $useLatestConfiguration ? $measurement->sort_order : $measurement->parameter_sort_order,
                     'isStarred' => $useLatestConfiguration ? false : $measurement->parameter_is_starred,

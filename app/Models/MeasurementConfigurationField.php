@@ -9,7 +9,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
-#[Fillable(['measurement_configuration_id', 'parameter_name', 'condition', 'expected_value', 'description', 'sort_order', 'is_active'])]
+#[Fillable(['measurement_configuration_id', 'parameter_name', 'pdf_parameter_name', 'condition', 'expected_value', 'description', 'sort_order', 'is_active'])]
 class MeasurementConfigurationField extends Model
 {
     /** @use HasFactory<MeasurementConfigurationFieldFactory> */

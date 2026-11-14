@@ -10,6 +10,7 @@ interface ConfigurationRecord {
   fields: {
     id?: number
     parameterName: string
+    pdfParameterName: string | null
     condition: string
     expectedValue: string | null
     description: string

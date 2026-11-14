@@ -14,6 +14,7 @@ import type { SelectOption } from "@/lib/crud"
 interface ConfigurationField {
   id?: number
   parameterName: string
+  pdfParameterName: string | null
   condition: string
   expectedValue: string | number | null
   description: string
@@ -45,14 +46,14 @@ const props = defineProps<{
 }>()
 
 function newField(sortOrder: number): ConfigurationField {
-  return { parameterName: "", condition: props.measurementConditions[0]?.code ?? "", expectedValue: "", description: "", sortOrder, isActive: true }
+  return { parameterName: "", pdfParameterName: "", condition: props.measurementConditions[0]?.code ?? "", expectedValue: "", description: "", sortOrder, isActive: true }
 }
 
 const form = useForm({
   customerId: props.measurementConfiguration?.customerId ?? null,
   modelSizeId: props.measurementConfiguration?.modelSizeId ?? null,
   isActive: props.measurementConfiguration?.isActive ?? true,
-  fields: props.measurementConfiguration?.fields.map(field => ({ ...field, parameterName: field.parameterName ?? "", description: field.description ?? "" })) ?? [newField(1)],
+  fields: props.measurementConfiguration?.fields.map(field => ({ ...field, parameterName: field.parameterName ?? "", pdfParameterName: field.pdfParameterName ?? "", description: field.description ?? "" })) ?? [newField(1)],
 })
 
 const selectedCopyId = ref<number | null>(null)
@@ -109,6 +110,7 @@ function copyFields(): void {
 
   form.fields = source.fields.map(field => ({
     parameterName: field.parameterName,
+    pdfParameterName: field.pdfParameterName ?? "",
     condition: field.condition,
     expectedValue: field.expectedValue,
     description: field.description ?? "",
@@ -130,6 +132,7 @@ function copySelectedFields(): void {
     .filter(field => field.id !== undefined && selectedCopyFieldIds.value.includes(field.id))
     .map(field => ({
       parameterName: field.parameterName,
+      pdfParameterName: field.pdfParameterName ?? "",
       condition: field.condition,
       expectedValue: field.expectedValue,
       description: field.description ?? "",
@@ -252,6 +255,10 @@ function submit(): void {
                   <FieldLabel :for="`parameter-${index}`">Nama Parameter</FieldLabel>
                   <Input :id="`parameter-${index}`" v-model="field.parameterName" placeholder="Contoh: BEADING" :aria-invalid="Boolean(error(`fields.${index}.parameterName`) || duplicateMessage(index))" />
                   <FieldError :errors="[error(`fields.${index}.parameterName`) ?? duplicateMessage(index)]" />
+                </Field>
+                <Field v-if="field.condition === 'setelah_bakar'">
+                  <FieldLabel :for="`pdf-parameter-${index}`">Nama Parameter di PDF</FieldLabel>
+                  <Input :id="`pdf-parameter-${index}`" v-model="field.pdfParameterName as string" placeholder="Contoh: H, FHA 3" />
                 </Field>
                 <Field :data-invalid="Boolean(error(`fields.${index}.condition`) || duplicateMessage(index))">
                   <FieldLabel>Tahap</FieldLabel>

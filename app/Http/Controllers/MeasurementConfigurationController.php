@@ -101,6 +101,7 @@ class MeasurementConfigurationController extends Controller
                     'condition' => $field['condition'],
                 ],
                 [
+                    'pdf_parameter_name' => $field['pdfParameterName'] ?? null,
                     'expected_value' => $field['expectedValue'] ?? null,
                     'description' => $field['description'] ?? null,
                     'sort_order' => $field['sortOrder'],
@@ -148,6 +149,7 @@ class MeasurementConfigurationController extends Controller
                     'fields' => $configuration->fields->map(fn (MeasurementConfigurationField $field): array => [
                         'id' => $field->id,
                         'parameterName' => $field->parameter_name,
+                        'pdfParameterName' => $field->pdf_parameter_name,
                         'condition' => $field->condition,
                         'expectedValue' => $field->expected_value,
                         'description' => $field->description,
@@ -168,6 +170,7 @@ class MeasurementConfigurationController extends Controller
             'fields' => $configuration->fields->map(fn (MeasurementConfigurationField $field): array => [
                 'id' => $field->id,
                 'parameterName' => $field->parameter_name,
+                'pdfParameterName' => $field->pdf_parameter_name,
                 'condition' => $field->condition,
                 'expectedValue' => $field->expected_value,
                 'description' => $field->description,
