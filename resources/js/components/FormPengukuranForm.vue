@@ -75,6 +75,7 @@ const pdfImporting = ref(false)
 const pdfImportError = ref<string | null>(null)
 const pdfImportPreview = ref<PdfImportPreview[]>([])
 const pdfImportWarnings = ref<string[]>([])
+const saveSection = ref<HTMLElement | null>(null)
 
 const afterBakeFields = computed(() => selectedFields.value.filter(field => field.condition === "setelah_bakar"))
 
@@ -212,6 +213,10 @@ function fieldError(path: string): string | undefined {
   return form.errors[path]
 }
 
+function scrollToSave(): void {
+  saveSection.value?.scrollIntoView({ behavior: "smooth", block: "center" })
+}
+
 function submit(): void {
   if (!selectedConfiguration.value) {
     return
@@ -263,13 +268,14 @@ function submit(): void {
           </div>
           <div v-for="group in groupedFields" :key="group.condition" class="flex flex-col gap-3">
             <h3 class="font-semibold">{{ group.label }}</h3>
-            <div class="overflow-x-auto rounded-lg border"><Table><TableHeader><TableRow><TableHead class="min-w-56">Parameter</TableHead><TableHead>Condition</TableHead><TableHead>Keterangan</TableHead><TableHead class="w-40">Nilai harapan</TableHead><TableHead class="w-40">Actual</TableHead></TableRow></TableHeader><TableBody><TableRow v-for="field in group.fields" :key="field.id"><TableCell class="whitespace-normal font-medium">{{ field.label }}</TableCell><TableCell class="whitespace-normal">{{ field.condition }}</TableCell><TableCell class="whitespace-normal text-muted-foreground">{{ field.description ?? '-' }}</TableCell><TableCell class="font-mono">{{ field.expectedValue ?? '-' }}</TableCell><TableCell><Input v-model="actualFor(field.id).actual as string" type="number" step="any" inputmode="decimal" :aria-invalid="Boolean(fieldError(`items.0.actuals.${form.items[0].actuals.findIndex(actual => actual.configurationFieldId === field.id)}.actual`))" /><FieldError :errors="[fieldError(`items.0.actuals.${form.items[0].actuals.findIndex(actual => actual.configurationFieldId === field.id)}.actual`)]" /></TableCell></TableRow></TableBody></Table></div>
+            <div class="overflow-x-auto rounded-lg border"><Table><TableHeader><TableRow><TableHead class="min-w-56">Parameter</TableHead><TableHead>Condition</TableHead><TableHead>Keterangan</TableHead><TableHead class="w-40">Nilai harapan</TableHead><TableHead class="w-40">Actual</TableHead></TableRow></TableHeader><TableBody><TableRow v-for="field in group.fields" :key="field.id"><TableCell class="whitespace-normal font-medium">{{ field.label }}</TableCell><TableCell class="whitespace-normal">{{ field.condition }}</TableCell><TableCell class="whitespace-normal text-muted-foreground">{{ field.description ?? '-' }}</TableCell><TableCell class="font-mono">{{ field.expectedValue ?? '-' }}</TableCell><TableCell><Input v-model="actualFor(field.id).actual as string" type="text" inputmode="decimal" :aria-invalid="Boolean(fieldError(`items.0.actuals.${form.items[0].actuals.findIndex(actual => actual.configurationFieldId === field.id)}.actual`))" /><FieldError :errors="[fieldError(`items.0.actuals.${form.items[0].actuals.findIndex(actual => actual.configurationFieldId === field.id)}.actual`)]" /></TableCell></TableRow></TableBody></Table></div>
           </div>
           <FieldError :errors="[fieldError('items.0.actuals')]" />
         </CardContent>
       </Card>
 
-      <Card><CardHeader><CardTitle>Simpan Form</CardTitle><CardDescription>Konfigurasi admin akan disalin sebagai snapshot pada actual yang tersimpan.</CardDescription></CardHeader><CardContent v-if="form.errors.items" class="text-sm text-destructive">{{ form.errors.items }}</CardContent><CardFooter class="justify-end gap-3"><Button variant="outline" as-child><Link :href="route('form-pengukurans.index')">Batal</Link></Button><Button type="submit" :disabled="form.processing || !selectedConfiguration"><Save data-icon="inline-start" />{{ form.processing ? 'Menyimpan...' : 'Simpan form' }}</Button></CardFooter></Card>
+      <Button type="button" class="fixed right-6 bottom-6 z-50 shadow-lg" @click="scrollToSave">Ke Simpan</Button>
+      <div ref="saveSection"><Card><CardHeader><CardTitle>Simpan Form</CardTitle><CardDescription>Konfigurasi admin akan disalin sebagai snapshot pada actual yang tersimpan.</CardDescription></CardHeader><CardContent v-if="form.errors.items" class="text-sm text-destructive">{{ form.errors.items }}</CardContent><CardFooter class="justify-end gap-3"><Button variant="outline" as-child><Link :href="route('form-pengukurans.index')">Batal</Link></Button><Button type="submit" :disabled="form.processing || !selectedConfiguration"><Save data-icon="inline-start" />{{ form.processing ? 'Menyimpan...' : 'Simpan form' }}</Button></CardFooter></Card></div>
     </form>
   </CrudLayout>
 </template>
