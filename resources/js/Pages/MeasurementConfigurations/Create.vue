@@ -3,6 +3,7 @@ import MeasurementConfigurationForm from "@/components/MeasurementConfigurationF
 import type { SelectOption } from "@/lib/crud"
 
 defineProps<{
+  areas: SelectOption[]
   customers: SelectOption[]
   modelSizes: SelectOption[]
   measurementConditions: (SelectOption & { code: string })[]
@@ -24,5 +25,5 @@ defineProps<{
 </script>
 
 <template>
-  <MeasurementConfigurationForm :customers="customers" :model-sizes="modelSizes" :measurement-conditions="measurementConditions" :copyable-configurations="copyableConfigurations" />
+  <MeasurementConfigurationForm :areas="areas" :customers="customers" :model-sizes="modelSizes" :measurement-conditions="measurementConditions" :copyable-configurations="copyableConfigurations" />
 </template>

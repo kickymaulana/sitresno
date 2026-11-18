@@ -9,11 +9,16 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
-#[Fillable(['customer_id', 'model_size_id', 'is_active'])]
+#[Fillable(['area_id', 'customer_id', 'model_size_id', 'is_active'])]
 class MeasurementConfiguration extends Model
 {
     /** @use HasFactory<MeasurementConfigurationFactory> */
     use HasFactory;
+
+    public function area(): BelongsTo
+    {
+        return $this->belongsTo(Area::class);
+    }
 
     public function customer(): BelongsTo
     {

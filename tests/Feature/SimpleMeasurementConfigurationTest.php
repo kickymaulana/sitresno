@@ -2,6 +2,7 @@
 
 namespace Tests\Feature;
 
+use App\Models\Area;
 use App\Models\Customer;
 use App\Models\MeasurementCondition;
 use App\Models\MeasurementConfigurationField;
@@ -15,6 +16,42 @@ use Tests\TestCase;
 class SimpleMeasurementConfigurationTest extends TestCase
 {
     use RefreshDatabase;
+
+    public function test_configuration_can_be_grouped_by_an_optional_area(): void
+    {
+        $this->seed(RolePermissionSeeder::class);
+        $user = User::query()->where('nik', 'D260065')->firstOrFail();
+        $area = Area::factory()->create();
+        $customer = Customer::factory()->create();
+        $modelSize = ModelSize::factory()->create();
+        $condition = MeasurementCondition::factory()->create([
+            'code' => 'sebelum_cuci',
+            'is_active' => true,
+        ]);
+
+        $response = $this->actingAs($user)->post(route('measurement-configurations.store'), [
+            'areaId' => $area->id,
+            'customerId' => $customer->id,
+            'modelSizeId' => $modelSize->id,
+            'isActive' => true,
+            'fields' => [[
+                'parameterName' => 'L',
+                'pdfParameterName' => null,
+                'condition' => $condition->code,
+                'expectedValue' => '24',
+                'description' => null,
+                'sortOrder' => 1,
+                'isActive' => true,
+            ]],
+        ]);
+
+        $response->assertRedirect(route('measurement-configurations.index'));
+        $this->assertDatabaseHas('measurement_configurations', [
+            'area_id' => $area->id,
+            'customer_id' => $customer->id,
+            'model_size_id' => $modelSize->id,
+        ]);
+    }
 
     public function test_duplicate_parameter_and_condition_errors_identify_each_field(): void
     {

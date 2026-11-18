@@ -17,6 +17,7 @@ class StoreMeasurementConfigurationRequest extends FormRequest
     public function rules(): array
     {
         return [
+            'areaId' => ['nullable', 'integer', 'exists:areas,id'],
             'customerId' => ['required', 'integer', 'exists:customers,id'],
             'modelSizeId' => [
                 'required',
@@ -91,6 +92,7 @@ class StoreMeasurementConfigurationRequest extends FormRequest
     public function messages(): array
     {
         return [
+            'areaId.exists' => 'Area yang dipilih tidak valid.',
             'customerId.required' => 'Customer wajib dipilih.',
             'customerId.exists' => 'Customer yang dipilih tidak valid.',
             'modelSizeId.required' => 'Model/Size wajib dipilih.',

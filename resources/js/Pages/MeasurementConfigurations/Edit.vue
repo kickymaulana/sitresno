@@ -4,6 +4,7 @@ import type { SelectOption } from "@/lib/crud"
 
 interface ConfigurationRecord {
   id: number
+  areaId: number | null
   customerId: number
   modelSizeId: number
   isActive: boolean
@@ -21,6 +22,7 @@ interface ConfigurationRecord {
 
 defineProps<{
   measurementConfiguration: ConfigurationRecord
+  areas: SelectOption[]
   customers: SelectOption[]
   modelSizes: SelectOption[]
   measurementConditions: (SelectOption & { code: string })[]
@@ -28,5 +30,5 @@ defineProps<{
 </script>
 
 <template>
-  <MeasurementConfigurationForm :measurement-configuration="measurementConfiguration" :customers="customers" :model-sizes="modelSizes" :measurement-conditions="measurementConditions" />
+  <MeasurementConfigurationForm :measurement-configuration="measurementConfiguration" :areas="areas" :customers="customers" :model-sizes="modelSizes" :measurement-conditions="measurementConditions" />
 </template>

@@ -24,6 +24,7 @@ interface ConfigurationField {
 
 interface ConfigurationRecord {
   id: number
+  areaId: number | null
   customerId: number
   modelSizeId: number
   isActive: boolean
@@ -39,6 +40,7 @@ interface CopyableConfiguration {
 
 const props = defineProps<{
   measurementConfiguration?: ConfigurationRecord
+  areas: SelectOption[]
   customers: SelectOption[]
   modelSizes: SelectOption[]
   measurementConditions: (SelectOption & { code: string })[]
@@ -50,6 +52,7 @@ function newField(sortOrder: number): ConfigurationField {
 }
 
 const form = useForm({
+  areaId: props.measurementConfiguration?.areaId ?? null,
   customerId: props.measurementConfiguration?.customerId ?? null,
   modelSizeId: props.measurementConfiguration?.modelSizeId ?? null,
   isActive: props.measurementConfiguration?.isActive ?? true,
@@ -186,6 +189,14 @@ function submit(): void {
         </CardHeader>
         <CardContent>
           <FieldGroup class="grid grid-cols-1 gap-5 md:grid-cols-2">
+            <Field :data-invalid="Boolean(form.errors.areaId)">
+              <FieldLabel>Area</FieldLabel>
+              <Select v-model="form.areaId">
+                <SelectTrigger :aria-invalid="Boolean(form.errors.areaId)"><SelectValue placeholder="Tanpa Area" /></SelectTrigger>
+                <SelectContent><SelectGroup><SelectItem :value="null">Tanpa Area</SelectItem><SelectItem v-for="area in areas" :key="area.id" :value="area.id">{{ area.name }}</SelectItem></SelectGroup></SelectContent>
+              </Select>
+              <FieldError :errors="[form.errors.areaId]" />
+            </Field>
             <Field :data-invalid="Boolean(form.errors.customerId)">
               <FieldLabel>Customer</FieldLabel>
               <Select v-model="form.customerId">

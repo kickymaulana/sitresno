@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Http\Requests\StoreMeasurementConfigurationRequest;
 use App\Http\Requests\UpdateMeasurementConfigurationRequest;
+use App\Models\Area;
 use App\Models\Customer;
 use App\Models\MeasurementCondition;
 use App\Models\MeasurementConfiguration;
@@ -19,12 +20,13 @@ class MeasurementConfigurationController extends Controller
     public function index(): Response
     {
         $configurations = MeasurementConfiguration::query()
-            ->with(['customer', 'modelSize'])
+            ->with(['area', 'customer', 'modelSize'])
             ->withCount('fields')
             ->latest('id')
             ->get()
             ->map(fn (MeasurementConfiguration $configuration): array => [
                 'id' => $configuration->id,
+                'area' => $configuration->area?->name,
                 'customer' => $configuration->customer->name,
                 'modelSize' => $configuration->modelSize->displayName(),
                 'fieldCount' => $configuration->fields_count,
@@ -44,6 +46,7 @@ class MeasurementConfigurationController extends Controller
         DB::transaction(function () use ($request): void {
             $data = $request->validated();
             $configuration = MeasurementConfiguration::query()->create([
+                'area_id' => $data['areaId'] ?? null,
                 'customer_id' => $data['customerId'],
                 'model_size_id' => $data['modelSizeId'],
                 'is_active' => $data['isActive'],
@@ -68,6 +71,7 @@ class MeasurementConfigurationController extends Controller
         DB::transaction(function () use ($request, $measurementConfiguration): void {
             $data = $request->validated();
             $measurementConfiguration->update([
+                'area_id' => $data['areaId'] ?? null,
                 'customer_id' => $data['customerId'],
                 'model_size_id' => $data['modelSizeId'],
                 'is_active' => $data['isActive'],
@@ -125,6 +129,10 @@ class MeasurementConfigurationController extends Controller
     private function options(): array
     {
         return [
+            'areas' => Area::query()->orderBy('name')->get()->map(fn (Area $area): array => [
+                'id' => $area->id,
+                'name' => $area->name,
+            ]),
             'customers' => Customer::query()->orderBy('name')->get()->map(fn (Customer $customer): array => [
                 'id' => $customer->id,
                 'name' => $customer->name,
@@ -164,6 +172,7 @@ class MeasurementConfigurationController extends Controller
     {
         return [
             'id' => $configuration->id,
+            'areaId' => $configuration->area_id,
             'customerId' => $configuration->customer_id,
             'modelSizeId' => $configuration->model_size_id,
             'isActive' => $configuration->is_active,

@@ -18,4 +18,9 @@ class Area extends Model
     {
         return $this->hasMany(FormPengukuran::class);
     }
+
+    public function measurementConfigurations(): HasMany
+    {
+        return $this->hasMany(MeasurementConfiguration::class);
+    }
 }
