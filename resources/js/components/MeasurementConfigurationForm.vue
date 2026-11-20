@@ -59,6 +59,15 @@ const form = useForm({
   fields: props.measurementConfiguration?.fields.map(field => ({ ...field, parameterName: field.parameterName ?? "", pdfParameterName: field.pdfParameterName ?? "", description: field.description ?? "" })) ?? [newField(1)],
 })
 
+const fieldSearch = ref("")
+const conditionFilter = ref("all")
+const visibleFieldIndexes = computed(() => new Set(form.fields.flatMap((field, index) => {
+  const matchesSearch = field.parameterName.toLocaleLowerCase().includes(fieldSearch.value.trim().toLocaleLowerCase())
+  const matchesCondition = conditionFilter.value === "all" || field.condition === conditionFilter.value
+
+  return matchesSearch && matchesCondition ? [index] : []
+})))
+
 const selectedCopyId = ref<number | null>(null)
 const selectedCopyFieldIds = ref<number[]>([])
 const selectedCopyInsertAfter = ref<number>(form.fields.length - 1)
@@ -156,7 +165,10 @@ function copySelectedFields(): void {
 
 function addField(afterIndex?: number): void {
   const insertIndex = afterIndex === undefined ? form.fields.length : afterIndex + 1
-  form.fields.splice(insertIndex, 0, newField(insertIndex + 1))
+  const field = newField(insertIndex + 1)
+  field.condition = afterIndex === undefined ? (conditionFilter.value === "all" ? field.condition : conditionFilter.value) : form.fields[afterIndex].condition
+  fieldSearch.value = ""
+  form.fields.splice(insertIndex, 0, field)
   normalizeSortOrders()
 }
 
@@ -170,6 +182,9 @@ function error(path: string): string | undefined {
 }
 
 function submit(): void {
+  fieldSearch.value = ""
+  conditionFilter.value = "all"
+
   if (props.measurementConfiguration) {
     form.put(route("measurement-configurations.update", props.measurementConfiguration.id))
     return
@@ -255,54 +270,33 @@ function submit(): void {
         </CardHeader>
         <CardContent class="flex flex-col gap-5">
           <FieldError :errors="[form.errors.fields]" />
-          <Card v-for="(field, index) in form.fields" :key="field.id ?? `new-${index}`" :class="duplicateMessage(index) ? 'border-destructive' : undefined">
-            <CardHeader class="flex-row items-center justify-between">
-              <div class="flex flex-col gap-1"><CardTitle class="text-base">Field {{ index + 1 }}</CardTitle><p v-if="duplicateMessage(index)" class="text-sm text-destructive">{{ duplicateMessage(index) }}</p></div>
-              <div class="flex gap-2"><Button type="button" variant="outline" size="sm" @click="addField(index)"><Plus data-icon="inline-start" />Tambah setelah ini</Button><Button type="button" variant="outline" size="sm" :disabled="form.fields.length === 1" @click="removeField(index)"><Trash2 data-icon="inline-start" />Hapus</Button></div>
-            </CardHeader>
-            <CardContent>
-              <FieldGroup class="grid grid-cols-1 gap-5 md:grid-cols-2 lg:grid-cols-3">
-                <Field :data-invalid="Boolean(error(`fields.${index}.parameterName`) || duplicateMessage(index))">
-                  <FieldLabel :for="`parameter-${index}`">Nama Parameter</FieldLabel>
-                  <Input :id="`parameter-${index}`" v-model="field.parameterName" placeholder="Contoh: BEADING" :aria-invalid="Boolean(error(`fields.${index}.parameterName`) || duplicateMessage(index))" />
-                  <FieldError :errors="[error(`fields.${index}.parameterName`) ?? duplicateMessage(index)]" />
-                </Field>
-                <Field v-if="field.condition === 'setelah_bakar'">
-                  <FieldLabel :for="`pdf-parameter-${index}`">Nama Parameter di PDF</FieldLabel>
-                  <Input :id="`pdf-parameter-${index}`" v-model="field.pdfParameterName as string" placeholder="Contoh: H, FHA 3" />
-                </Field>
-                <Field :data-invalid="Boolean(error(`fields.${index}.condition`) || duplicateMessage(index))">
-                  <FieldLabel>Tahap</FieldLabel>
-                  <Select v-model="field.condition">
-                    <SelectTrigger :aria-invalid="Boolean(error(`fields.${index}.condition`) || duplicateMessage(index))"><SelectValue /></SelectTrigger>
-                    <SelectContent><SelectGroup><SelectItem v-for="condition in measurementConditions" :key="condition.id" :value="condition.code">{{ condition.name }}</SelectItem></SelectGroup></SelectContent>
-                  </Select>
-                  <FieldError :errors="[error(`fields.${index}.condition`) ?? duplicateMessage(index)]" />
-                </Field>
-                <Field :data-invalid="Boolean(error(`fields.${index}.expectedValue`))">
-                  <FieldLabel :for="`expected-${index}`">Nilai harapan</FieldLabel>
-                  <Input :id="`expected-${index}`" v-model="field.expectedValue as string" type="text" :aria-invalid="Boolean(error(`fields.${index}.expectedValue`))" />
-                  <FieldError :errors="[error(`fields.${index}.expectedValue`)]" />
-                </Field>
-                <Field>
-                  <FieldLabel :for="`description-${index}`">Keterangan</FieldLabel>
-                  <Input :id="`description-${index}`" v-model="field.description" />
-                </Field>
-                <Field :data-invalid="Boolean(error(`fields.${index}.sortOrder`))">
-                  <FieldLabel :for="`sort-${index}`">Urutan</FieldLabel>
-                  <Input :id="`sort-${index}`" v-model.number="field.sortOrder" type="number" min="1" :aria-invalid="Boolean(error(`fields.${index}.sortOrder`))" />
-                  <FieldError :errors="[error(`fields.${index}.sortOrder`)]" />
-                </Field>
-                <Field orientation="horizontal">
-                  <FieldLabel :for="`active-${index}`">Aktif</FieldLabel>
-                  <Switch :id="`active-${index}`" v-model="field.isActive" />
-                </Field>
-              </FieldGroup>
-            </CardContent>
-          </Card>
-          <Button type="button" variant="outline" @click="addField"><Plus data-icon="inline-start" />Tambah field</Button>
+          <div class="flex flex-wrap items-end gap-3">
+            <Field class="min-w-48 flex-1"><FieldLabel for="field-search">Cari parameter</FieldLabel><Input id="field-search" v-model="fieldSearch" type="search" placeholder="Ketik nama parameter" /></Field>
+            <Field class="min-w-48"><FieldLabel for="condition-filter">Filter tahap</FieldLabel><Select v-model="conditionFilter"><SelectTrigger id="condition-filter"><SelectValue /></SelectTrigger><SelectContent><SelectGroup><SelectItem value="all">Semua tahap</SelectItem><SelectItem v-for="condition in measurementConditions" :key="condition.id" :value="condition.code">{{ condition.name }}</SelectItem></SelectGroup></SelectContent></Select></Field>
+            <p class="text-sm text-muted-foreground" aria-live="polite">{{ visibleFieldIndexes.size }} dari {{ form.fields.length }} field</p>
+          </div>
+          <div class="overflow-x-auto rounded-lg border">
+            <table class="w-full min-w-[1150px] border-collapse text-sm">
+              <caption class="sr-only">Konfigurasi field pengukuran</caption>
+              <thead class="sticky top-0 z-10 bg-muted"><tr class="border-b text-left"><th scope="col" class="w-20 p-2">Urutan</th><th scope="col" class="min-w-44 p-2">Parameter</th><th scope="col" class="min-w-44 p-2">Tahap</th><th scope="col" class="min-w-32 p-2">Nilai harapan</th><th scope="col" class="min-w-40 p-2">Nama PDF</th><th scope="col" class="min-w-40 p-2">Keterangan</th><th scope="col" class="p-2">Aktif</th><th scope="col" class="p-2">Aksi</th></tr></thead>
+              <tbody>
+                <tr v-for="(field, index) in form.fields" v-show="visibleFieldIndexes.has(index)" :key="field.id ?? `new-${index}`" class="border-b align-top last:border-0 hover:bg-muted/30" :class="duplicateMessage(index) ? 'bg-destructive/10' : undefined">
+                  <td class="p-2"><Input v-model.number="field.sortOrder" type="number" min="1" class="h-8 w-16" :aria-label="`Urutan Field ${index + 1}`" :aria-invalid="Boolean(error(`fields.${index}.sortOrder`))" /><FieldError :errors="[error(`fields.${index}.sortOrder`)]" /></td>
+                  <td class="p-2"><Input v-model="field.parameterName" class="h-8" :aria-label="`Parameter Field ${index + 1}`" :aria-invalid="Boolean(error(`fields.${index}.parameterName`) || duplicateMessage(index))" /><FieldError :errors="[error(`fields.${index}.parameterName`) ?? duplicateMessage(index)]" /></td>
+                  <td class="p-2"><Select v-model="field.condition"><SelectTrigger class="h-8 w-full" :aria-label="`Tahap Field ${index + 1}`" :aria-invalid="Boolean(error(`fields.${index}.condition`) || duplicateMessage(index))"><SelectValue /></SelectTrigger><SelectContent><SelectGroup><SelectItem v-for="condition in measurementConditions" :key="condition.id" :value="condition.code">{{ condition.name }}</SelectItem></SelectGroup></SelectContent></Select><FieldError :errors="[error(`fields.${index}.condition`) ?? duplicateMessage(index)]" /></td>
+                  <td class="p-2"><Input v-model="field.expectedValue as string" type="text" class="h-8" :aria-label="`Nilai harapan Field ${index + 1}`" :aria-invalid="Boolean(error(`fields.${index}.expectedValue`))" /><FieldError :errors="[error(`fields.${index}.expectedValue`)]" /></td>
+                  <td class="p-2"><Input v-if="field.condition === 'setelah_bakar'" v-model="field.pdfParameterName as string" class="h-8" :aria-label="`Nama PDF Field ${index + 1}`" :aria-invalid="Boolean(error(`fields.${index}.pdfParameterName`))" /><span v-else class="text-muted-foreground">—</span><FieldError :errors="[error(`fields.${index}.pdfParameterName`)]" /></td>
+                  <td class="p-2"><Input v-model="field.description" class="h-8" :aria-label="`Keterangan Field ${index + 1}`" :aria-invalid="Boolean(error(`fields.${index}.description`))" /><FieldError :errors="[error(`fields.${index}.description`)]" /></td>
+                  <td class="p-2"><Switch v-model="field.isActive" :aria-label="`Aktifkan Field ${index + 1}`" /><FieldError :errors="[error(`fields.${index}.isActive`)]" /></td>
+                  <td class="p-2"><div class="flex gap-1"><Button type="button" variant="outline" size="sm" :aria-label="`Tambah setelah Field ${index + 1}`" :title="`Tambah setelah Field ${index + 1}`" @click="addField(index)"><Plus class="size-4" /></Button><Button type="button" variant="outline" size="sm" :disabled="form.fields.length === 1" :aria-label="`Hapus Field ${index + 1}`" :title="`Hapus Field ${index + 1}`" @click="removeField(index)"><Trash2 class="size-4" /></Button></div></td>
+                </tr>
+                <tr v-if="visibleFieldIndexes.size === 0"><td colspan="8" class="p-6 text-center text-muted-foreground">Tidak ada field sesuai pencarian atau filter.</td></tr>
+              </tbody>
+            </table>
+          </div>
+          <Button type="button" variant="outline" @click="addField()"><Plus data-icon="inline-start" />Tambah field</Button>
         </CardContent>
-        <CardFooter class="justify-end gap-3">
+        <CardFooter class="sticky bottom-0 z-20 justify-end gap-3 border-t bg-background py-3">
           <Button variant="outline" as-child><Link :href="route('measurement-configurations.index')">Batal</Link></Button>
           <Button type="submit" :disabled="form.processing"><Save data-icon="inline-start" />{{ form.processing ? "Menyimpan..." : "Simpan konfigurasi" }}</Button>
         </CardFooter>
