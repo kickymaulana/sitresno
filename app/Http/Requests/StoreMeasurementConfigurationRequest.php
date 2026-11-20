@@ -27,7 +27,6 @@ class StoreMeasurementConfigurationRequest extends FormRequest
                     ->where('customer_id', $this->input('customerId'))
                     ->ignore($this->configurationToIgnore()),
             ],
-            'isActive' => ['required', 'boolean'],
             'fields' => ['required', 'array', 'min:1'],
             'fields.*.parameterName' => ['required', 'string', 'max:255'],
             'fields.*.pdfParameterName' => ['nullable', 'string', 'max:255'],
@@ -35,7 +34,6 @@ class StoreMeasurementConfigurationRequest extends FormRequest
             'fields.*.expectedValue' => ['nullable', 'string', 'max:255'],
             'fields.*.description' => ['nullable', 'string'],
             'fields.*.sortOrder' => ['required', 'integer', 'min:1'],
-            'fields.*.isActive' => ['required', 'boolean'],
         ];
     }
 
@@ -98,7 +96,6 @@ class StoreMeasurementConfigurationRequest extends FormRequest
             'modelSizeId.required' => 'Model/Size wajib dipilih.',
             'modelSizeId.exists' => 'Model/Size yang dipilih tidak valid.',
             'modelSizeId.unique' => 'Konfigurasi untuk kombinasi Customer dan Model/Size ini sudah ada.',
-            'isActive.required' => 'Status konfigurasi wajib ditentukan.',
             'fields.required' => 'Minimal satu field pengukuran wajib ditambahkan.',
             'fields.min' => 'Minimal satu field pengukuran wajib ditambahkan.',
             'fields.*.parameterName.required' => 'Nama parameter wajib diisi.',

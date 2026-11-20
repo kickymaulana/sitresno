@@ -30,7 +30,6 @@ class MeasurementConfigurationController extends Controller
                 'customer' => $configuration->customer->name,
                 'modelSize' => $configuration->modelSize->displayName(),
                 'fieldCount' => $configuration->fields_count,
-                'isActive' => $configuration->is_active,
             ]);
 
         return Inertia::render('MeasurementConfigurations/Index', ['measurementConfigurations' => $configurations]);
@@ -49,7 +48,7 @@ class MeasurementConfigurationController extends Controller
                 'area_id' => $data['areaId'] ?? null,
                 'customer_id' => $data['customerId'],
                 'model_size_id' => $data['modelSizeId'],
-                'is_active' => $data['isActive'],
+                'is_active' => true,
             ]);
             $this->synchronizeFields($configuration, $data['fields']);
         });
@@ -74,7 +73,7 @@ class MeasurementConfigurationController extends Controller
                 'area_id' => $data['areaId'] ?? null,
                 'customer_id' => $data['customerId'],
                 'model_size_id' => $data['modelSizeId'],
-                'is_active' => $data['isActive'],
+                'is_active' => true,
             ]);
             $this->synchronizeFields($measurementConfiguration, $data['fields']);
         });
@@ -86,7 +85,7 @@ class MeasurementConfigurationController extends Controller
     {
         if ($measurementConfiguration->formPengukuranItems()->exists()) {
             return to_route('measurement-configurations.index')
-                ->with('error', 'Konfigurasi sudah digunakan pada form pengukuran dan tidak dapat dihapus. Nonaktifkan konfigurasi jika tidak digunakan lagi.');
+                ->with('error', 'Konfigurasi sudah digunakan pada form pengukuran dan tidak dapat dihapus.');
         }
 
         $measurementConfiguration->delete();
@@ -109,21 +108,13 @@ class MeasurementConfigurationController extends Controller
                     'expected_value' => $field['expectedValue'] ?? null,
                     'description' => $field['description'] ?? null,
                     'sort_order' => $field['sortOrder'],
-                    'is_active' => $field['isActive'],
+                    'is_active' => true,
                 ],
             );
             $retainedIds[] = $configurationField->id;
         }
 
-        $fieldsToRemove = $configuration->fields()->whereNotIn('id', $retainedIds);
-
-        (clone $fieldsToRemove)
-            ->whereHas('actuals')
-            ->update(['is_active' => false]);
-
-        $fieldsToRemove
-            ->whereDoesntHave('actuals')
-            ->delete();
+        $configuration->fields()->whereNotIn('id', $retainedIds)->delete();
     }
 
     private function options(): array
@@ -162,7 +153,6 @@ class MeasurementConfigurationController extends Controller
                         'expectedValue' => $field->expected_value,
                         'description' => $field->description,
                         'sortOrder' => $field->sort_order,
-                        'isActive' => $field->is_active,
                     ])->values(),
                 ])->values(),
         ];
@@ -175,7 +165,6 @@ class MeasurementConfigurationController extends Controller
             'areaId' => $configuration->area_id,
             'customerId' => $configuration->customer_id,
             'modelSizeId' => $configuration->model_size_id,
-            'isActive' => $configuration->is_active,
             'fields' => $configuration->fields->map(fn (MeasurementConfigurationField $field): array => [
                 'id' => $field->id,
                 'parameterName' => $field->parameter_name,
@@ -184,7 +173,6 @@ class MeasurementConfigurationController extends Controller
                 'expectedValue' => $field->expected_value,
                 'description' => $field->description,
                 'sortOrder' => $field->sort_order,
-                'isActive' => $field->is_active,
             ])->values(),
         ];
     }

@@ -2,7 +2,6 @@
 import { Link, router } from "@inertiajs/vue3"
 import { Pencil, Plus, Trash2 } from "@lucide/vue"
 import CrudLayout from "@/components/CrudLayout.vue"
-import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
@@ -13,7 +12,6 @@ interface ConfigurationSummary {
   customer: string
   modelSize: string
   fieldCount: number
-  isActive: boolean
 }
 
 defineProps<{ measurementConfigurations: ConfigurationSummary[] }>()
@@ -38,17 +36,16 @@ function destroyConfiguration(configuration: ConfigurationSummary): void {
       <CardContent>
         <div class="overflow-x-auto rounded-lg border">
           <Table>
-            <TableHeader><TableRow><TableHead>Area</TableHead><TableHead>Customer</TableHead><TableHead>Model/Size</TableHead><TableHead>Jumlah field</TableHead><TableHead>Status</TableHead><TableHead class="text-right">Aksi</TableHead></TableRow></TableHeader>
+            <TableHeader><TableRow><TableHead>Area</TableHead><TableHead>Customer</TableHead><TableHead>Model/Size</TableHead><TableHead>Jumlah field</TableHead><TableHead class="text-right">Aksi</TableHead></TableRow></TableHeader>
             <TableBody>
               <TableRow v-for="configuration in measurementConfigurations" :key="configuration.id">
                 <TableCell>{{ configuration.area ?? "Tanpa Area" }}</TableCell>
                 <TableCell class="font-medium">{{ configuration.customer }}</TableCell>
                 <TableCell>{{ configuration.modelSize }}</TableCell>
                 <TableCell>{{ configuration.fieldCount }}</TableCell>
-                <TableCell><Badge :variant="configuration.isActive ? 'default' : 'secondary'">{{ configuration.isActive ? "Aktif" : "Nonaktif" }}</Badge></TableCell>
                 <TableCell><div class="flex justify-end gap-2"><Button variant="outline" size="sm" as-child><Link :href="route('measurement-configurations.edit', configuration.id)"><Pencil data-icon="inline-start" />Ubah</Link></Button><Button variant="outline" size="sm" @click="destroyConfiguration(configuration)"><Trash2 data-icon="inline-start" />Hapus</Button></div></TableCell>
               </TableRow>
-              <TableRow v-if="measurementConfigurations.length === 0"><TableCell colspan="6" class="h-24 text-center text-muted-foreground">Belum ada konfigurasi pengukuran.</TableCell></TableRow>
+              <TableRow v-if="measurementConfigurations.length === 0"><TableCell colspan="5" class="h-24 text-center text-muted-foreground">Belum ada konfigurasi pengukuran.</TableCell></TableRow>
             </TableBody>
           </Table>
         </div>

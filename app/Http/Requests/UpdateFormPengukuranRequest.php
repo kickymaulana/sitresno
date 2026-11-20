@@ -47,13 +47,15 @@ class UpdateFormPengukuranRequest extends StoreFormPengukuranRequest
                     && $existingItem?->measurement_configuration_id !== null;
 
                 if ($keepsOriginalSnapshot) {
-                    $allowed = $existingItem->actuals->pluck('measurement_configuration_field_id')->filter()->sort()->values();
+                    $allowed = $existingItem->actuals
+                        ->map(fn ($actual): int => $actual->measurement_configuration_field_id ?? -$actual->id)
+                        ->sort()
+                        ->values();
                 } else {
                     $configuration = MeasurementConfiguration::query()
                         ->where('customer_id', $this->integer('customerId'))
                         ->where('model_size_id', $item['modelSizeId'])
-                        ->where('is_active', true)
-                        ->with(['fields' => fn ($query) => $query->where('is_active', true)])
+                        ->with('fields')
                         ->first();
 
                     if ($configuration === null) {

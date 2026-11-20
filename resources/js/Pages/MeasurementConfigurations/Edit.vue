@@ -7,7 +7,6 @@ interface ConfigurationRecord {
   areaId: number | null
   customerId: number
   modelSizeId: number
-  isActive: boolean
   fields: {
     id?: number
     parameterName: string
@@ -16,7 +15,6 @@ interface ConfigurationRecord {
     expectedValue: string | null
     description: string
     sortOrder: number
-    isActive: boolean
   }[]
 }
 

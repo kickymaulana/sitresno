@@ -21,7 +21,7 @@ class FormPengukuranDraftUpdateTest extends TestCase
 {
     use RefreshDatabase;
 
-    public function test_draft_update_uses_latest_active_configuration_fields(): void
+    public function test_draft_update_uses_latest_configuration_fields(): void
     {
         $this->seed(RolePermissionSeeder::class);
         $user = User::query()->where('nik', 'D260065')->firstOrFail();
@@ -89,6 +89,7 @@ class FormPengukuranDraftUpdateTest extends TestCase
             'parameter_label' => $removedField->parameter_name,
             'parameter_sort_order' => 2,
         ]);
+        $removedField->delete();
 
         $response = $this->actingAs($user)->put(route('form-pengukurans.update', $formPengukuran), [
             'areaId' => $area->id,
@@ -124,5 +125,57 @@ class FormPengukuranDraftUpdateTest extends TestCase
             'measurement_configuration_field_id' => $newField->id,
         ]);
         $this->assertDatabaseMissing('measurement_actuals', ['id' => $removedActual->id]);
+    }
+
+    public function test_configuration_and_fields_with_legacy_inactive_flags_can_be_used(): void
+    {
+        $this->seed(RolePermissionSeeder::class);
+        $user = User::query()->where('nik', 'D260065')->firstOrFail();
+        $condition = MeasurementCondition::factory()->create(['code' => 'sebelum_cuci']);
+        $area = Area::factory()->create();
+        $masterMould = MasterMould::factory()->create();
+        $customer = Customer::factory()->create();
+        $modelSize = ModelSize::factory()->create();
+        $configuration = MeasurementConfiguration::factory()->create([
+            'customer_id' => $customer,
+            'model_size_id' => $modelSize,
+            'is_active' => false,
+        ]);
+        $field = MeasurementConfigurationField::factory()->create([
+            'measurement_configuration_id' => $configuration,
+            'parameter_name' => 'L',
+            'condition' => $condition->code,
+            'sort_order' => 1,
+            'is_active' => false,
+        ]);
+
+        $response = $this->actingAs($user)->post(route('form-pengukurans.store'), [
+            'areaId' => $area->id,
+            'masterMouldId' => $masterMould->id,
+            'customerId' => $customer->id,
+            'tanggalPengukuran' => '2026-11-12',
+            'status' => 'draft',
+            'items' => [[
+                'modelSizeId' => $modelSize->id,
+                'remarks' => null,
+                'actuals' => [[
+                    'configurationFieldId' => $field->id,
+                    'actual' => 24,
+                ]],
+            ]],
+        ]);
+
+        $formPengukuran = FormPengukuran::query()->latest('id')->firstOrFail();
+        $response->assertRedirect(route('form-pengukurans.show', $formPengukuran));
+        $response->assertSessionHasNoErrors();
+        $this->assertDatabaseHas('form_pengukuran_items', [
+            'form_pengukuran_id' => $formPengukuran->id,
+            'measurement_configuration_id' => $configuration->id,
+        ]);
+        $this->assertDatabaseHas('measurement_actuals', [
+            'measurement_configuration_field_id' => $field->id,
+            'actual' => 24,
+            'parameter_label' => 'L',
+        ]);
     }
 }

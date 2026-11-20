@@ -254,7 +254,7 @@ function submit(): void {
         </CardContent>
       </Card>
 
-      <Alert v-if="form.customerId && form.items[0].modelSizeId && !selectedConfiguration" variant="destructive"><CircleAlert /><AlertTitle>Konfigurasi belum tersedia</AlertTitle><AlertDescription>Admin belum membuat konfigurasi aktif untuk kombinasi Customer dan Model/Size ini. Form tidak dapat disimpan.</AlertDescription></Alert>
+      <Alert v-if="form.customerId && form.items[0].modelSizeId && !selectedConfiguration" variant="destructive"><CircleAlert /><AlertTitle>Konfigurasi belum tersedia</AlertTitle><AlertDescription>Admin belum membuat konfigurasi untuk kombinasi Customer dan Model/Size ini. Form tidak dapat disimpan.</AlertDescription></Alert>
 
       <Card>
         <CardHeader><CardTitle>Hasil Pengukuran</CardTitle><CardDescription>Parameter, tahap, nilai harapan, dan keterangan berasal dari konfigurasi admin. Petugas hanya mengisi actual.</CardDescription></CardHeader>

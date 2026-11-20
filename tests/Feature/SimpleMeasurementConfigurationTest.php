@@ -4,7 +4,12 @@ namespace Tests\Feature;
 
 use App\Models\Area;
 use App\Models\Customer;
+use App\Models\FormPengukuran;
+use App\Models\FormPengukuranItem;
+use App\Models\MasterMould;
+use App\Models\MeasurementActual;
 use App\Models\MeasurementCondition;
+use App\Models\MeasurementConfiguration;
 use App\Models\MeasurementConfigurationField;
 use App\Models\ModelSize;
 use App\Models\User;
@@ -117,5 +122,74 @@ class SimpleMeasurementConfigurationTest extends TestCase
         $this->assertFalse(
             Schema::hasColumn('measurement_configuration_fields', 'measurement_parameter_id'),
         );
+    }
+
+    public function test_removing_a_used_field_deletes_it_and_preserves_the_actual_snapshot(): void
+    {
+        $this->seed(RolePermissionSeeder::class);
+        $user = User::query()->where('nik', 'D260065')->firstOrFail();
+        $customer = Customer::factory()->create();
+        $modelSize = ModelSize::factory()->create();
+        $condition = MeasurementCondition::factory()->create(['code' => 'sebelum_cuci']);
+        $configuration = MeasurementConfiguration::factory()->create([
+            'customer_id' => $customer->id,
+            'model_size_id' => $modelSize->id,
+        ]);
+        $retainedField = MeasurementConfigurationField::factory()->create([
+            'measurement_configuration_id' => $configuration->id,
+            'parameter_name' => 'L',
+            'condition' => $condition->code,
+            'sort_order' => 1,
+        ]);
+        $removedField = MeasurementConfigurationField::factory()->create([
+            'measurement_configuration_id' => $configuration->id,
+            'parameter_name' => 'W',
+            'condition' => $condition->code,
+            'sort_order' => 2,
+        ]);
+        $formPengukuran = FormPengukuran::factory()->create([
+            'master_mould_id' => MasterMould::factory(),
+            'customer_id' => $customer,
+            'model_size_id' => $modelSize,
+            'status' => 'disetujui',
+        ]);
+        $item = FormPengukuranItem::factory()->create([
+            'form_pengukuran_id' => $formPengukuran,
+            'model_size_id' => $modelSize,
+            'measurement_configuration_id' => $configuration,
+        ]);
+        $actual = MeasurementActual::factory()->create([
+            'form_pengukuran_item_id' => $item,
+            'measurement_configuration_field_id' => $removedField,
+            'condition' => $condition->code,
+            'specification' => '20',
+            'actual' => '21',
+            'parameter_label' => 'W',
+            'parameter_description' => 'Snapshot lama',
+            'parameter_sort_order' => 2,
+        ]);
+
+        $response = $this->actingAs($user)->put(route('measurement-configurations.update', $configuration), [
+            'customerId' => $customer->id,
+            'modelSizeId' => $modelSize->id,
+            'fields' => [[
+                'parameterName' => $retainedField->parameter_name,
+                'condition' => $retainedField->condition,
+                'expectedValue' => (string) $retainedField->expected_value,
+                'description' => $retainedField->description,
+                'sortOrder' => 1,
+            ]],
+        ]);
+
+        $response->assertSessionHasNoErrors();
+        $response->assertRedirect(route('measurement-configurations.index'));
+        $this->assertDatabaseMissing('measurement_configuration_fields', ['id' => $removedField->id]);
+        $this->assertDatabaseHas('measurement_actuals', [
+            'id' => $actual->id,
+            'measurement_configuration_field_id' => null,
+            'actual' => 21,
+            'parameter_label' => 'W',
+            'parameter_description' => 'Snapshot lama',
+        ]);
     }
 }

@@ -32,7 +32,7 @@ class StoreFormPengukuranRequest extends FormRequest
             'items.*.modelSizeId' => ['required', 'integer', 'exists:model_sizes,id'],
             'items.*.remarks' => ['nullable', 'string'],
             'items.*.actuals' => ['required', 'array', 'min:1'],
-            'items.*.actuals.*.configurationFieldId' => ['required', 'integer', 'exists:measurement_configuration_fields,id'],
+            'items.*.actuals.*.configurationFieldId' => ['required', 'integer'],
             'items.*.actuals.*.actual' => ['nullable', 'numeric'],
         ];
     }
@@ -48,8 +48,7 @@ class StoreFormPengukuranRequest extends FormRequest
                 $configuration = MeasurementConfiguration::query()
                     ->where('customer_id', $this->integer('customerId'))
                     ->where('model_size_id', $item['modelSizeId'])
-                    ->where('is_active', true)
-                    ->with(['fields' => fn ($query) => $query->where('is_active', true)])
+                    ->with('fields')
                     ->first();
 
                 if ($configuration === null) {
@@ -81,9 +80,8 @@ class StoreFormPengukuranRequest extends FormRequest
             'items.size' => 'Satu Model/Size wajib dipilih untuk satu form pengukuran.',
             'items.*.modelSizeId.required' => 'Model/Size wajib dipilih.',
             'items.*.actuals.required' => 'Daftar pengukuran wajib diisi.',
-            'items.*.actuals.min' => 'Konfigurasi harus memiliki minimal satu field aktif.',
+            'items.*.actuals.min' => 'Konfigurasi harus memiliki minimal satu field.',
             'items.*.actuals.*.configurationFieldId.required' => 'Identitas field konfigurasi wajib diisi.',
-            'items.*.actuals.*.configurationFieldId.exists' => 'Field konfigurasi tidak valid.',
             'items.*.actuals.*.actual.numeric' => 'Nilai aktual harus berupa angka.',
         ];
     }

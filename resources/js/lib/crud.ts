@@ -34,7 +34,6 @@ export interface MeasurementConfigurationField {
   expectedValue: string | number | null
   description: string | null
   sortOrder: number
-  isActive?: boolean
   label: string
   isStarred: boolean
 }
@@ -43,7 +42,6 @@ export interface MeasurementConfiguration {
   id: number
   customerId: number
   modelSizeId: number
-  isActive?: boolean
   fields: MeasurementConfigurationField[]
 }
 

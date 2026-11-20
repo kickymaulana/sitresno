@@ -133,7 +133,7 @@ class FormPengukuranController extends Controller
         $configurations = MeasurementConfiguration::query()
             ->where('customer_id', $formPengukuran->customer_id)
             ->whereIn('model_size_id', collect($items)->pluck('modelSizeId'))
-            ->with(['fields' => fn ($query) => $query->where('is_active', true)])
+            ->with('fields')
             ->get()
             ->keyBy('model_size_id');
         $retainedItemIds = [];
@@ -170,8 +170,9 @@ class FormPengukuranController extends Controller
         $actualValues = collect($submittedActuals)->keyBy('configurationFieldId');
 
         foreach ($item->actuals as $actual) {
+            $fieldId = $actual->measurement_configuration_field_id ?? -$actual->id;
             $actual->update([
-                'actual' => $actualValues->get($actual->measurement_configuration_field_id)['actual'] ?? null,
+                'actual' => $actualValues->get($fieldId)['actual'] ?? null,
             ]);
         }
     }
@@ -203,8 +204,7 @@ class FormPengukuranController extends Controller
     private function options(?FormPengukuran $formPengukuran = null): array
     {
         $configurations = MeasurementConfiguration::query()
-            ->where('is_active', true)
-            ->with(['fields' => fn ($query) => $query->where('is_active', true)])
+            ->with('fields')
             ->get()
             ->map(fn (MeasurementConfiguration $configuration): array => $this->transformConfiguration($configuration));
 
@@ -221,7 +221,7 @@ class FormPengukuranController extends Controller
                         'customerId' => $formPengukuran->customer_id,
                         'modelSizeId' => $item->model_size_id,
                         'fields' => $item->actuals->map(fn (MeasurementActual $actual): array => [
-                            'id' => $actual->measurement_configuration_field_id,
+                            'id' => $actual->measurement_configuration_field_id ?? -$actual->id,
                             'condition' => $actual->condition,
                             'expectedValue' => $actual->specification,
                             'description' => $actual->parameter_description,
@@ -312,7 +312,7 @@ class FormPengukuranController extends Controller
     {
         $actuals = $item->actuals->keyBy('measurement_configuration_field_id');
         $fields = $useLatestConfiguration
-            ? $item->measurementConfiguration?->fields->where('is_active', true) ?? collect()
+            ? $item->measurementConfiguration?->fields ?? collect()
             : collect();
 
         return [
@@ -322,7 +322,7 @@ class FormPengukuranController extends Controller
             'measurementConfigurationId' => $item->measurement_configuration_id,
             'remarks' => $item->remarks,
             'actuals' => ($useLatestConfiguration ? $fields : $item->actuals)->map(function (MeasurementConfigurationField|MeasurementActual $measurement) use ($actuals, $useLatestConfiguration): array {
-                $fieldId = $useLatestConfiguration ? $measurement->id : $measurement->measurement_configuration_field_id;
+                $fieldId = $useLatestConfiguration ? $measurement->id : ($measurement->measurement_configuration_field_id ?? -$measurement->id);
                 $actual = $useLatestConfiguration ? $actuals->get($fieldId) : $measurement;
 
                 return [

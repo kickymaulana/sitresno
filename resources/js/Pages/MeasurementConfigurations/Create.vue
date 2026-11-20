@@ -16,9 +16,8 @@ defineProps<{
       pdfParameterName: string | null
       condition: string
       expectedValue: string | null
-      description: string
-      sortOrder: number
-      isActive: boolean
+       description: string
+       sortOrder: number
     }[]
   }[]
 }>()

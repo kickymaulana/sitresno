@@ -8,7 +8,6 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Field, FieldError, FieldGroup, FieldLabel } from "@/components/ui/field"
 import { Input } from "@/components/ui/input"
 import { Select, SelectContent, SelectGroup, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Switch } from "@/components/ui/switch"
 import type { SelectOption } from "@/lib/crud"
 
 interface ConfigurationField {
@@ -19,7 +18,6 @@ interface ConfigurationField {
   expectedValue: string | number | null
   description: string
   sortOrder: number
-  isActive: boolean
 }
 
 interface ConfigurationRecord {
@@ -27,7 +25,6 @@ interface ConfigurationRecord {
   areaId: number | null
   customerId: number
   modelSizeId: number
-  isActive: boolean
   fields: ConfigurationField[]
 }
 
@@ -48,14 +45,13 @@ const props = defineProps<{
 }>()
 
 function newField(sortOrder: number): ConfigurationField {
-  return { parameterName: "", pdfParameterName: "", condition: props.measurementConditions[0]?.code ?? "", expectedValue: "", description: "", sortOrder, isActive: true }
+  return { parameterName: "", pdfParameterName: "", condition: props.measurementConditions[0]?.code ?? "", expectedValue: "", description: "", sortOrder }
 }
 
 const form = useForm({
   areaId: props.measurementConfiguration?.areaId ?? null,
   customerId: props.measurementConfiguration?.customerId ?? null,
   modelSizeId: props.measurementConfiguration?.modelSizeId ?? null,
-  isActive: props.measurementConfiguration?.isActive ?? true,
   fields: props.measurementConfiguration?.fields.map(field => ({ ...field, parameterName: field.parameterName ?? "", pdfParameterName: field.pdfParameterName ?? "", description: field.description ?? "" })) ?? [newField(1)],
 })
 
@@ -127,7 +123,6 @@ function copyFields(): void {
     expectedValue: field.expectedValue,
     description: field.description ?? "",
     sortOrder: field.sortOrder,
-    isActive: field.isActive,
   }))
   normalizeSortOrders()
   selectedCopyInsertAfter.value = form.fields.length - 1
@@ -149,7 +144,6 @@ function copySelectedFields(): void {
       expectedValue: field.expectedValue,
       description: field.description ?? "",
       sortOrder: form.fields.length + 1,
-      isActive: field.isActive,
     }))
 
   if (form.fields.length === 1 && !form.fields[0].parameterName) {
@@ -228,10 +222,6 @@ function submit(): void {
               </Select>
               <FieldError :errors="[form.errors.modelSizeId]" />
             </Field>
-            <Field orientation="horizontal">
-              <FieldLabel for="configuration-active">Konfigurasi aktif</FieldLabel>
-              <Switch id="configuration-active" v-model="form.isActive" />
-            </Field>
           </FieldGroup>
         </CardContent>
       </Card>
@@ -278,7 +268,7 @@ function submit(): void {
           <div class="overflow-x-auto rounded-lg border">
             <table class="w-full min-w-[1150px] border-collapse text-sm">
               <caption class="sr-only">Konfigurasi field pengukuran</caption>
-              <thead class="sticky top-0 z-10 bg-muted"><tr class="border-b text-left"><th scope="col" class="w-20 p-2">Urutan</th><th scope="col" class="min-w-44 p-2">Parameter</th><th scope="col" class="min-w-44 p-2">Tahap</th><th scope="col" class="min-w-32 p-2">Nilai harapan</th><th scope="col" class="min-w-40 p-2">Nama PDF</th><th scope="col" class="min-w-40 p-2">Keterangan</th><th scope="col" class="p-2">Aktif</th><th scope="col" class="p-2">Aksi</th></tr></thead>
+              <thead class="sticky top-0 z-10 bg-muted"><tr class="border-b text-left"><th scope="col" class="w-20 p-2">Urutan</th><th scope="col" class="min-w-44 p-2">Parameter</th><th scope="col" class="min-w-44 p-2">Tahap</th><th scope="col" class="min-w-32 p-2">Nilai harapan</th><th scope="col" class="min-w-40 p-2">Nama PDF</th><th scope="col" class="min-w-40 p-2">Keterangan</th><th scope="col" class="p-2">Aksi</th></tr></thead>
               <tbody>
                 <tr v-for="(field, index) in form.fields" v-show="visibleFieldIndexes.has(index)" :key="field.id ?? `new-${index}`" class="border-b align-top last:border-0 hover:bg-muted/30" :class="duplicateMessage(index) ? 'bg-destructive/10' : undefined">
                   <td class="p-2"><Input v-model.number="field.sortOrder" type="number" min="1" class="h-8 w-16" :aria-label="`Urutan Field ${index + 1}`" :aria-invalid="Boolean(error(`fields.${index}.sortOrder`))" /><FieldError :errors="[error(`fields.${index}.sortOrder`)]" /></td>
@@ -287,10 +277,10 @@ function submit(): void {
                   <td class="p-2"><Input v-model="field.expectedValue as string" type="text" class="h-8" :aria-label="`Nilai harapan Field ${index + 1}`" :aria-invalid="Boolean(error(`fields.${index}.expectedValue`))" /><FieldError :errors="[error(`fields.${index}.expectedValue`)]" /></td>
                   <td class="p-2"><Input v-if="field.condition === 'setelah_bakar'" v-model="field.pdfParameterName as string" class="h-8" :aria-label="`Nama PDF Field ${index + 1}`" :aria-invalid="Boolean(error(`fields.${index}.pdfParameterName`))" /><span v-else class="text-muted-foreground">—</span><FieldError :errors="[error(`fields.${index}.pdfParameterName`)]" /></td>
                   <td class="p-2"><Input v-model="field.description" class="h-8" :aria-label="`Keterangan Field ${index + 1}`" :aria-invalid="Boolean(error(`fields.${index}.description`))" /><FieldError :errors="[error(`fields.${index}.description`)]" /></td>
-                  <td class="p-2"><Switch v-model="field.isActive" :aria-label="`Aktifkan Field ${index + 1}`" /><FieldError :errors="[error(`fields.${index}.isActive`)]" /></td>
+
                   <td class="p-2"><div class="flex gap-1"><Button type="button" variant="outline" size="sm" :aria-label="`Tambah setelah Field ${index + 1}`" :title="`Tambah setelah Field ${index + 1}`" @click="addField(index)"><Plus class="size-4" /></Button><Button type="button" variant="outline" size="sm" :disabled="form.fields.length === 1" :aria-label="`Hapus Field ${index + 1}`" :title="`Hapus Field ${index + 1}`" @click="removeField(index)"><Trash2 class="size-4" /></Button></div></td>
                 </tr>
-                <tr v-if="visibleFieldIndexes.size === 0"><td colspan="8" class="p-6 text-center text-muted-foreground">Tidak ada field sesuai pencarian atau filter.</td></tr>
+                <tr v-if="visibleFieldIndexes.size === 0"><td colspan="7" class="p-6 text-center text-muted-foreground">Tidak ada field sesuai pencarian atau filter.</td></tr>
               </tbody>
             </table>
           </div>
